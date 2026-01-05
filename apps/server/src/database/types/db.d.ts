@@ -360,6 +360,42 @@ export interface Workspaces {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface Databases {
+  id: Generated<string>;
+  slugId: string;
+  title: string | null;
+  icon: string | null;
+  properties: Generated<Json>;
+  viewConfig: Generated<Json>;
+  pageId: string | null;
+  spaceId: string;
+  workspaceId: string;
+  creatorId: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Generated<Timestamp>;
+  deletedAt: Timestamp | null;
+}
+
+export interface DatabaseRows {
+  id: Generated<string>;
+  slugId: string;
+  position: string | null;
+  properties: Generated<Json>;
+  title: string | null;
+  icon: string | null;
+  content: Json | null;
+  ydoc: Buffer | null;
+  textContent: string | null;
+  databaseId: string;
+  spaceId: string;
+  workspaceId: string;
+  creatorId: string | null;
+  lastUpdatedById: string | null;
+  createdAt: Generated<Timestamp>;
+  updatedAt: Generated<Timestamp>;
+  deletedAt: Timestamp | null;
+}
+
 export interface DB {
   apiKeys: ApiKeys;
   attachments: Attachments;
@@ -368,6 +404,8 @@ export interface DB {
   backlinks: Backlinks;
   billing: Billing;
   comments: Comments;
+  databases: Databases;
+  databaseRows: DatabaseRows;
   fileTasks: FileTasks;
   groups: Groups;
   groupUsers: GroupUsers;

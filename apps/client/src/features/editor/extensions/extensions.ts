@@ -42,6 +42,7 @@ import {
   SearchAndReplace,
   Mention,
   Subpages,
+  Database,
   TableDndExtension,
   Heading,
   Highlight,
@@ -63,6 +64,7 @@ import DrawioView from "../components/drawio/drawio-view";
 import ExcalidrawView from "@/features/editor/components/excalidraw/excalidraw-view.tsx";
 import EmbedView from "@/features/editor/components/embed/embed-view.tsx";
 import SubpagesView from "@/features/editor/components/subpages/subpages-view.tsx";
+import DatabaseView from "@/features/database/components/database-view";
 import { common, createLowlight } from "lowlight";
 import plaintext from "highlight.js/lib/languages/plaintext";
 import powershell from "highlight.js/lib/languages/powershell";
@@ -228,6 +230,9 @@ export const mainExtensions = [
   }),
   Subpages.configure({
     view: SubpagesView,
+  }),
+  Database.configure({
+    view: DatabaseView,
   }),
   MarkdownClipboard.configure({
     transformPastedText: true,

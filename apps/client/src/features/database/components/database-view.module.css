@@ -1,0 +1,220 @@
+.container {
+  margin: 0.5rem 0;
+  user-select: none;
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: 4px;
+  overflow: hidden;
+
+  @mixin dark {
+    border-color: var(--mantine-color-dark-4);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+  background: var(--mantine-color-gray-0);
+
+  @mixin dark {
+    border-color: var(--mantine-color-dark-4);
+    background: var(--mantine-color-dark-6);
+  }
+}
+
+.titleInput {
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  outline: none;
+  flex: 1;
+  padding: 4px 0;
+
+  &::placeholder {
+    color: var(--mantine-color-gray-5);
+  }
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tableHeader {
+  background: var(--mantine-color-gray-0);
+
+  @mixin dark {
+    background: var(--mantine-color-dark-6);
+  }
+}
+
+.tableHeaderCell {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 500;
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+  border-right: 1px solid var(--mantine-color-gray-2);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &:hover {
+    background: var(--mantine-color-gray-1);
+  }
+
+  @mixin dark {
+    border-bottom-color: var(--mantine-color-dark-4);
+    border-right-color: var(--mantine-color-dark-5);
+
+    &:hover {
+      background: var(--mantine-color-dark-5);
+    }
+  }
+}
+
+.tableRow {
+  &:hover {
+    background: var(--mantine-color-gray-0);
+  }
+
+  @mixin dark {
+    &:hover {
+      background: var(--mantine-color-dark-6);
+    }
+  }
+}
+
+.tableCell {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--mantine-color-gray-2);
+  border-right: 1px solid var(--mantine-color-gray-2);
+  min-width: 120px;
+  max-width: 300px;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  @mixin dark {
+    border-bottom-color: var(--mantine-color-dark-5);
+    border-right-color: var(--mantine-color-dark-5);
+  }
+}
+
+.titleCell {
+  min-width: 200px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--mantine-primary-color-filled);
+  }
+}
+
+.cellInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  padding: 2px 0;
+}
+
+.addRowButton {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--mantine-color-gray-6);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    background: var(--mantine-color-gray-0);
+    color: var(--mantine-color-gray-7);
+  }
+
+  @mixin dark {
+    color: var(--mantine-color-dark-3);
+
+    &:hover {
+      background: var(--mantine-color-dark-6);
+      color: var(--mantine-color-dark-1);
+    }
+  }
+}
+
+.addPropertyButton {
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--mantine-color-gray-6);
+
+  &:hover {
+    background: var(--mantine-color-gray-1);
+    color: var(--mantine-color-gray-7);
+  }
+
+  @mixin dark {
+    color: var(--mantine-color-dark-3);
+
+    &:hover {
+      background: var(--mantine-color-dark-5);
+      color: var(--mantine-color-dark-1);
+    }
+  }
+}
+
+.emptyState {
+  padding: 32px;
+  text-align: center;
+  color: var(--mantine-color-gray-6);
+}
+
+.checkbox {
+  cursor: pointer;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  margin-right: 4px;
+  margin-bottom: 2px;
+}
+
+.link {
+  color: var(--mantine-primary-color-filled);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.propertyIcon {
+  margin-right: 6px;
+  color: var(--mantine-color-gray-6);
+}
+
+.rowIcon {
+  margin-right: 4px;
+}

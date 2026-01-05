@@ -20,6 +20,7 @@ import {
   IconCalendar,
   IconAppWindow,
   IconSitemap,
+  IconDatabase,
 } from "@tabler/icons-react";
 import {
   CommandProps,
@@ -43,6 +44,9 @@ import {
   VimeoIcon,
   YoutubeIcon,
 } from "@/components/icons";
+import { createDatabase } from "@/features/database/services/database-service";
+import { queryClient } from "@/main";
+import { IPage } from "@/features/page/types/page.types";
 
 const CommandGroups: SlashMenuGroupedItemsType = {
   basic: [
@@ -242,6 +246,33 @@ const CommandGroups: SlashMenuGroupedItemsType = {
           .deleteRange(range)
           .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
           .run(),
+    },
+    {
+      title: "Database",
+      description: "Insert an inline database with properties.",
+      searchTerms: ["database", "db", "notion", "spreadsheet", "airtable"],
+      icon: IconDatabase,
+      command: async ({ editor, range }: CommandProps) => {
+        editor.chain().focus().deleteRange(range).run();
+
+        const pageId = editor.storage?.pageId;
+        if (!pageId) return;
+
+        // Get spaceId from page query cache
+        const page = queryClient.getQueryData<IPage>(["pages", pageId]);
+        const spaceId = page?.spaceId;
+        if (!spaceId) {
+          console.error("Could not find spaceId for page");
+          return;
+        }
+
+        try {
+          const database = await createDatabase({ pageId, spaceId });
+          editor.chain().focus().insertDatabase({ databaseId: database.id }).run();
+        } catch (error) {
+          console.error("Failed to create database:", error);
+        }
+      },
     },
     {
       title: "Toggle block",

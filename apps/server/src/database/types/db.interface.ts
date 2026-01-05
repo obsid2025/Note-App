@@ -6,6 +6,8 @@ import {
   Backlinks,
   Billing,
   Comments,
+  Databases,
+  DatabaseRows,
   FileTasks,
   Groups,
   GroupUsers,
@@ -29,6 +31,8 @@ export interface DbInterface {
   backlinks: Backlinks;
   billing: Billing;
   comments: Comments;
+  databases: Databases;
+  databaseRows: DatabaseRows;
   fileTasks: FileTasks;
   groups: Groups;
   groupUsers: GroupUsers;
