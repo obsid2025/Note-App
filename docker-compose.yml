@@ -4,15 +4,15 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      db:
+      docmost-db:
         condition: service_healthy
-      redis:
+      docmost-redis:
         condition: service_healthy
     environment:
       APP_URL: ${APP_URL:-http://localhost:3000}
       APP_SECRET: ${APP_SECRET:-d0cm0st_s3cr3t_k3y_ch4ng3_1n_pr0d}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-docmost}:${POSTGRES_PASSWORD:-docmost123}@db:5432/${POSTGRES_DB:-docmost}?schema=public
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER:-docmost}:${POSTGRES_PASSWORD:-docmost123}@docmost-db:5432/${POSTGRES_DB:-docmost}?schema=public
+      REDIS_URL: redis://docmost-redis:6379
     ports:
       - "3001:3000"
     restart: unless-stopped
@@ -25,7 +25,7 @@ services:
       retries: 30
       start_period: 30s
 
-  db:
+  docmost-db:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-docmost}
@@ -41,7 +41,7 @@ services:
       retries: 30
       start_period: 10s
 
-  redis:
+  docmost-redis:
     image: redis:7.2-alpine
     restart: unless-stopped
     volumes:
