@@ -20,9 +20,10 @@ services:
       - docmost:/app/data/storage
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
-      interval: 5s
+      interval: 10s
       timeout: 10s
-      retries: 20
+      retries: 30
+      start_period: 30s
 
   db:
     image: postgres:16-alpine
@@ -34,10 +35,11 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docmost} -d ${POSTGRES_DB:-docmost}"]
+      test: ["CMD-SHELL", "pg_isready -U docmost -d docmost"]
       interval: 5s
       timeout: 10s
-      retries: 20
+      retries: 30
+      start_period: 10s
 
   redis:
     image: redis:7.2-alpine
@@ -49,6 +51,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 20
+      start_period: 5s
 
 volumes:
   docmost:
