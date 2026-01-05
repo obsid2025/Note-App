@@ -21,6 +21,8 @@ import {
   IconAppWindow,
   IconSitemap,
   IconDatabase,
+  IconTemplate,
+  IconColumns,
 } from "@tabler/icons-react";
 import {
   CommandProps,
@@ -551,6 +553,33 @@ const CommandGroups: SlashMenuGroupedItemsType = {
           .deleteRange(range)
           .setEmbed({ provider: "gsheets" })
           .run();
+      },
+    },
+    {
+      title: "Template Button",
+      description: "Insert a button that generates content from a template",
+      searchTerms: ["template", "button", "daily", "tasks", "repeat", "generate"],
+      icon: IconTemplate,
+      command: ({ editor, range }: CommandProps) => {
+        editor.chain().focus().deleteRange(range).insertTemplateButton().run();
+      },
+    },
+    {
+      title: "2 Columns",
+      description: "Create a 2-column layout",
+      searchTerms: ["columns", "layout", "side", "horizontal", "two"],
+      icon: IconColumns,
+      command: ({ editor, range }: CommandProps) => {
+        editor.chain().focus().deleteRange(range).insertColumns(2).run();
+      },
+    },
+    {
+      title: "3 Columns",
+      description: "Create a 3-column layout",
+      searchTerms: ["columns", "layout", "side", "horizontal", "three"],
+      icon: IconColumns,
+      command: ({ editor, range }: CommandProps) => {
+        editor.chain().focus().deleteRange(range).insertColumns(3).run();
       },
     },
   ],

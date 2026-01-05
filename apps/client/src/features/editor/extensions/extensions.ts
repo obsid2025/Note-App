@@ -47,6 +47,9 @@ import {
   Heading,
   Highlight,
   UniqueID,
+  TemplateButton,
+  Columns,
+  Column,
 } from "@docmost/editor-ext";
 import {
   randomElement,
@@ -65,6 +68,7 @@ import ExcalidrawView from "@/features/editor/components/excalidraw/excalidraw-v
 import EmbedView from "@/features/editor/components/embed/embed-view.tsx";
 import SubpagesView from "@/features/editor/components/subpages/subpages-view.tsx";
 import DatabaseView from "@/features/database/components/database-view";
+import TemplateButtonView from "@/features/editor/components/template-button/template-button-view";
 import { common, createLowlight } from "lowlight";
 import plaintext from "highlight.js/lib/languages/plaintext";
 import powershell from "highlight.js/lib/languages/powershell";
@@ -234,6 +238,11 @@ export const mainExtensions = [
   Database.configure({
     view: DatabaseView,
   }),
+  TemplateButton.configure({
+    view: TemplateButtonView,
+  }),
+  Columns,
+  Column,
   MarkdownClipboard.configure({
     transformPastedText: true,
   }),

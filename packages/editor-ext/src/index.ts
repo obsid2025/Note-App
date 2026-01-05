@@ -24,3 +24,5 @@ export * from "./lib/database";
 export * from "./lib/highlight";
 export * from "./lib/heading/heading";
 export * from "./lib/unique-id";
+export * from "./lib/template-button";
+export * from "./lib/columns";

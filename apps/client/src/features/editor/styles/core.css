@@ -12,12 +12,20 @@
   font-weight: 400;
   width: 100%;
 
-  padding-left: 3rem;
-  padding-right: 3rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
 
   @media (max-width: $mantine-breakpoint-sm) {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+
+  /* Full width when sidebars are hidden */
+  @media (min-width: 1400px) {
+    max-width: 1000px;
   }
 
   @media print {

@@ -1,0 +1,32 @@
+.wrapper {
+  margin: 0.5rem 0;
+}
+
+.container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.container:hover {
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+}
+
+.button {
+  cursor: pointer;
+}
+
+.settingsButton {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.container:hover .settingsButton {
+  opacity: 1;
+}

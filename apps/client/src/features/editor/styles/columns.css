@@ -1,0 +1,46 @@
+/* Columns Layout Styles */
+.ProseMirror div[data-type="columns"] {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror div[data-type="column"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-7)
+  );
+  border: 1px dashed transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.ProseMirror div[data-type="column"]:hover {
+  border-color: light-dark(
+    var(--mantine-color-gray-4),
+    var(--mantine-color-dark-4)
+  );
+}
+
+.ProseMirror div[data-type="column"]:focus-within {
+  border-color: light-dark(
+    var(--mantine-color-blue-4),
+    var(--mantine-color-blue-6)
+  );
+}
+
+/* Make sure content inside columns doesn't overflow */
+.ProseMirror div[data-type="column"] > * {
+  max-width: 100%;
+}
+
+/* Responsive: stack columns on small screens */
+@media (max-width: 600px) {
+  .ProseMirror div[data-type="columns"] {
+    flex-direction: column;
+  }
+}
