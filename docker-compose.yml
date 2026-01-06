@@ -9,13 +9,17 @@ services:
       docmost-redis:
         condition: service_healthy
     environment:
-      APP_URL: ${APP_URL:-http://localhost:3000}
-      APP_SECRET: ${APP_SECRET:-d0cm0st_s3cr3t_k3y_ch4ng3_1n_pr0d}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-docmost}:${POSTGRES_PASSWORD:-docmost123}@docmost-db:5432/${POSTGRES_DB:-docmost}?schema=public
+      APP_URL: ${APP_URL}
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-docmost}:${POSTGRES_PASSWORD}@docmost-db:5432/${POSTGRES_DB:-docmost}?schema=public
       REDIS_URL: redis://docmost-redis:6379
     restart: unless-stopped
     volumes:
       - docmost:/app/data/storage
+    expose:
+      - "3000"
+    labels:
+      - "coolify.managed=true"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
       interval: 10s
