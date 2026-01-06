@@ -45,8 +45,8 @@ const DatabaseRowEditor = forwardRef<DatabaseRowEditorRef, DatabaseRowEditorProp
     const editor = useEditor({
       extensions: [
         StarterKit.configure({
-          gapcursor: true,
-          dropcursor: true,
+          gapcursor: false,
+          dropcursor: false,
           heading: {
             levels: [1, 2, 3],
           },

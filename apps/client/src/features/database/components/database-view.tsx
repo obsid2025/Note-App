@@ -228,6 +228,10 @@ export default function DatabaseView(props: NodeViewProps) {
   const [selectedDateProperty, setSelectedDateProperty] = useState<string | null>(null);
   const [customDateRange, setCustomDateRange] = useState<[Date | null, Date | null]>([null, null]);
 
+  const handleDateRangeChange = useCallback((value: [Date | null, Date | null]) => {
+    setCustomDateRange(value);
+  }, []);
+
   const { data: database, isLoading: isLoadingDatabase } = useDatabaseQuery(databaseId);
   const { data: rowsData, isLoading: isLoadingRows } = useDatabaseRowsQuery(
     databaseId ? { databaseId, limit: 100 } : null
@@ -451,7 +455,7 @@ export default function DatabaseView(props: NodeViewProps) {
                       label={t("Date range")}
                       placeholder={t("Pick dates range")}
                       value={customDateRange}
-                      onChange={setCustomDateRange}
+                      onChange={handleDateRangeChange}
                       clearable
                     />
                   </Popover.Dropdown>
