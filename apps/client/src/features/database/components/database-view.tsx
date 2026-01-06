@@ -244,7 +244,8 @@ export default function DatabaseView(props: NodeViewProps) {
 
   const properties = useMemo(() => {
     if (!database?.properties) return [];
-    return database.properties;
+    // Filter out TITLE type properties since title has its own dedicated column
+    return database.properties.filter((p) => p.type !== PropertyType.TITLE);
   }, [database]);
 
   const dateProperties = useMemo(() => {
