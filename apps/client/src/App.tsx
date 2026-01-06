@@ -38,6 +38,7 @@ import SpaceTrash from "@/pages/space/space-trash.tsx";
 import UserApiKeys from "@/ee/api-key/pages/user-api-keys";
 import WorkspaceApiKeys from "@/ee/api-key/pages/workspace-api-keys";
 import AiSettings from "@/ee/ai/pages/ai-settings.tsx";
+import CreateWorkspacePage from "@/pages/workspace/create-workspace.tsx";
 
 export default function App() {
   const { t } = useTranslation();
@@ -80,6 +81,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path={"/home"} element={<Home />} />
           <Route path={"/spaces"} element={<SpacesPage />} />
+          <Route path={"/workspace/create"} element={<CreateWorkspacePage />} />
           <Route path={"/s/:spaceSlug"} element={<SpaceHome />} />
           <Route path={"/s/:spaceSlug/trash"} element={<SpaceTrash />} />
           <Route

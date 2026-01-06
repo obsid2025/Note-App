@@ -74,3 +74,17 @@ export interface IVersion {
   latestVersion: string;
   releaseUrl: string;
 }
+
+export interface IJoinedWorkspace {
+  id: string;
+  name: string;
+  description: string | null;
+  logo: string | null;
+  hostname: string | null;
+  createdAt: Date;
+}
+
+export interface ICreateWorkspace {
+  name: string;
+  description?: string;
+}

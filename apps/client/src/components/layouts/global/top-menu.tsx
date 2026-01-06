@@ -1,5 +1,6 @@
 import {
   Group,
+  Loader,
   Menu,
   Text,
   UnstyledButton,
@@ -13,8 +14,10 @@ import {
   IconDeviceDesktop,
   IconLogout,
   IconMoon,
+  IconPlus,
   IconSettings,
   IconSun,
+  IconSwitchHorizontal,
   IconUserCircle,
   IconUsers,
 } from "@tabler/icons-react";
@@ -26,12 +29,19 @@ import useAuth from "@/features/auth/hooks/use-auth.ts";
 import { CustomAvatar } from "@/components/ui/custom-avatar.tsx";
 import { useTranslation } from "react-i18next";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types.ts";
+import {
+  useJoinedWorkspacesQuery,
+  useSwitchWorkspaceMutation,
+} from "@/features/workspace/queries/workspace-query.ts";
 
 export default function TopMenu() {
   const { t } = useTranslation();
   const [currentUser] = useAtom(currentUserAtom);
   const { logout } = useAuth();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const { data: joinedWorkspaces, isLoading: isLoadingWorkspaces } =
+    useJoinedWorkspacesQuery();
+  const switchWorkspaceMutation = useSwitchWorkspaceMutation();
 
   const user = currentUser?.user;
   const workspace = currentUser?.workspace;
@@ -39,6 +49,12 @@ export default function TopMenu() {
   if (!user || !workspace) {
     return <></>;
   }
+
+  const handleSwitchWorkspace = (workspaceId: string) => {
+    if (workspaceId !== workspace.id) {
+      switchWorkspaceMutation.mutate(workspaceId);
+    }
+  };
 
   return (
     <Menu width={250} position="bottom-end" withArrow shadow={"lg"}>
@@ -77,6 +93,56 @@ export default function TopMenu() {
         >
           {t("Manage members")}
         </Menu.Item>
+
+        <Menu.Sub>
+          <Menu.Sub.Target>
+            <Menu.Sub.Item leftSection={<IconSwitchHorizontal size={16} />}>
+              {t("Switch workspace")}
+            </Menu.Sub.Item>
+          </Menu.Sub.Target>
+
+          <Menu.Sub.Dropdown>
+            {isLoadingWorkspaces ? (
+              <Menu.Item disabled>
+                <Loader size="xs" />
+              </Menu.Item>
+            ) : (
+              <>
+                {joinedWorkspaces?.map((ws) => (
+                  <Menu.Item
+                    key={ws.id}
+                    onClick={() => handleSwitchWorkspace(ws.id)}
+                    rightSection={
+                      ws.id === workspace.id ? <IconCheck size={16} /> : null
+                    }
+                    disabled={switchWorkspaceMutation.isPending}
+                  >
+                    <Group gap="xs" wrap="nowrap">
+                      <CustomAvatar
+                        avatarUrl={ws.logo}
+                        name={ws.name}
+                        variant="filled"
+                        size="xs"
+                        type={AvatarIconType.WORKSPACE_ICON}
+                      />
+                      <Text size="sm" lineClamp={1}>
+                        {ws.name}
+                      </Text>
+                    </Group>
+                  </Menu.Item>
+                ))}
+                <Menu.Divider />
+                <Menu.Item
+                  component={Link}
+                  to="/workspace/create"
+                  leftSection={<IconPlus size={16} />}
+                >
+                  {t("Create workspace")}
+                </Menu.Item>
+              </>
+            )}
+          </Menu.Sub.Dropdown>
+        </Menu.Sub>
 
         <Menu.Divider />
 

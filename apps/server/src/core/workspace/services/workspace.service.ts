@@ -476,6 +476,45 @@ export class WorkspaceService {
     return { hostname: this.domainService.getUrl(hostname) };
   }
 
+  async getJoinedWorkspaces(email: string) {
+    return this.workspaceRepo.findWorkspacesByEmail(email);
+  }
+
+  async getUserInWorkspace(email: string, workspaceId: string) {
+    return this.userRepo.findByEmail(email, workspaceId);
+  }
+
+  async createWorkspaceForUser(
+    authUser: User,
+    createWorkspaceDto: CreateWorkspaceDto,
+  ) {
+    // Create the workspace and a new user record for this workspace
+    return await executeTx(this.db, async (trx) => {
+      // Create a new user record for the new workspace
+      const newUser = await trx
+        .insertInto('users')
+        .values({
+          name: authUser.name,
+          email: authUser.email.toLowerCase(),
+          password: null, // Will use existing password from other workspace
+          locale: authUser.locale || 'en-US',
+          role: 'owner',
+          lastLoginAt: new Date(),
+        })
+        .returning(['id', 'email', 'name', 'role', 'locale', 'createdAt', 'updatedAt'])
+        .executeTakeFirst();
+
+      // Create the workspace using the new user
+      const workspace = await this.create(
+        newUser as User,
+        createWorkspaceDto,
+        trx,
+      );
+
+      return workspace;
+    });
+  }
+
   async deleteUser(
     authUser: User,
     userId: string,

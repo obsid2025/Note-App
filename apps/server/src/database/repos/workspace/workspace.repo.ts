@@ -185,12 +185,40 @@ export class WorkspaceRepo {
       .updateTable('workspaces')
       .set({
         settings: sql`COALESCE(settings, '{}'::jsonb)
-                || jsonb_build_object('ai', COALESCE(settings->'ai', '{}'::jsonb) 
+                || jsonb_build_object('ai', COALESCE(settings->'ai', '{}'::jsonb)
                 || jsonb_build_object('${sql.raw(prefKey)}', ${sql.lit(prefValue)}))`,
         updatedAt: new Date(),
       })
       .where('id', '=', workspaceId)
       .returning(this.baseFields)
       .executeTakeFirst();
+  }
+
+  async findWorkspacesByEmail(email: string): Promise<
+    Array<{
+      id: string;
+      name: string;
+      description: string | null;
+      logo: string | null;
+      hostname: string | null;
+      createdAt: Date;
+    }>
+  > {
+    return this.db
+      .selectFrom('workspaces')
+      .innerJoin('users', 'users.workspaceId', 'workspaces.id')
+      .select([
+        'workspaces.id',
+        'workspaces.name',
+        'workspaces.description',
+        'workspaces.logo',
+        'workspaces.hostname',
+        'workspaces.createdAt',
+      ])
+      .where(sql`LOWER(users.email)`, '=', sql`LOWER(${email})`)
+      .where('users.deletedAt', 'is', null)
+      .where('workspaces.deletedAt', 'is', null)
+      .orderBy('workspaces.createdAt', 'asc')
+      .execute();
   }
 }

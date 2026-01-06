@@ -17,6 +17,9 @@ import {
   getWorkspacePublicData,
   getAppVersion,
   deleteWorkspaceMember,
+  getJoinedWorkspaces,
+  createNewWorkspace,
+  switchWorkspace,
 } from "@/features/workspace/services/workspace-service";
 import { IPagination, QueryParams } from "@/lib/types.ts";
 import { notifications } from "@mantine/notifications";
@@ -26,6 +29,8 @@ import {
   IPublicWorkspace,
   IVersion,
   IWorkspace,
+  IJoinedWorkspace,
+  ICreateWorkspace,
 } from "@/features/workspace/types/workspace.types.ts";
 import { IUser } from "@/features/user/types/user.types.ts";
 import { useTranslation } from "react-i18next";
@@ -190,5 +195,56 @@ export function useAppVersion(
     staleTime: 60 * 60 * 1000, // 1 hr
     enabled: isEnabled,
     refetchOnMount: true,
+  });
+}
+
+export function useJoinedWorkspacesQuery(): UseQueryResult<
+  IJoinedWorkspace[],
+  Error
+> {
+  return useQuery({
+    queryKey: ["joinedWorkspaces"],
+    queryFn: () => getJoinedWorkspaces(),
+    staleTime: 5 * 60 * 1000, // 5 min
+  });
+}
+
+export function useCreateWorkspaceMutation() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  return useMutation<IWorkspace, Error, ICreateWorkspace>({
+    mutationFn: (data) => createNewWorkspace(data),
+    onSuccess: () => {
+      notifications.show({ message: t("Workspace created successfully") });
+      queryClient.invalidateQueries({ queryKey: ["joinedWorkspaces"] });
+    },
+    onError: (error) => {
+      const errorMessage = error["response"]?.data?.message;
+      notifications.show({ message: errorMessage, color: "red" });
+    },
+  });
+}
+
+export function useSwitchWorkspaceMutation() {
+  const { t } = useTranslation();
+
+  return useMutation<
+    { success: boolean; workspaceId: string },
+    Error,
+    string
+  >({
+    mutationFn: (workspaceId) => switchWorkspace(workspaceId),
+    onSuccess: () => {
+      // Reload the page to reflect the new workspace
+      window.location.href = "/home";
+    },
+    onError: (error) => {
+      const errorMessage = error["response"]?.data?.message;
+      notifications.show({
+        message: errorMessage || t("Failed to switch workspace"),
+        color: "red",
+      });
+    },
   });
 }

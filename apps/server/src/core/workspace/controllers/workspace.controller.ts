@@ -14,7 +14,7 @@ import { UpdateWorkspaceDto } from '../dto/update-workspace.dto';
 import { UpdateWorkspaceUserRoleDto } from '../dto/update-workspace-user-role.dto';
 import { AuthUser } from '../../../common/decorators/auth-user.decorator';
 import { AuthWorkspace } from '../../../common/decorators/auth-workspace.decorator';
-import { PaginationOptions } from '@docmost/db/pagination/pagination-options';
+import { PaginationOptions } from '../../../database/pagination/pagination-options';
 import { WorkspaceInvitationService } from '../services/workspace-invitation.service';
 import { Public } from '../../../common/decorators/public.decorator';
 import {
@@ -34,6 +34,9 @@ import { FastifyReply } from 'fastify';
 import { EnvironmentService } from '../../../integrations/environment/environment.service';
 import { CheckHostnameDto } from '../dto/check-hostname.dto';
 import { RemoveWorkspaceUserDto } from '../dto/remove-workspace-user.dto';
+import { CreateWorkspaceDto } from '../dto/create-workspace.dto';
+import { TokenService } from '../../auth/services/token.service';
+import { SwitchWorkspaceDto } from '../dto/switch-workspace.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workspace')
@@ -43,6 +46,7 @@ export class WorkspaceController {
     private readonly workspaceInvitationService: WorkspaceInvitationService,
     private readonly workspaceAbility: WorkspaceAbilityFactory,
     private environmentService: EnvironmentService,
+    private tokenService: TokenService,
   ) {}
 
   @Public()
@@ -50,6 +54,79 @@ export class WorkspaceController {
   @Post('/public')
   async getWorkspacePublicInfo(@Req() req: any) {
     return this.workspaceService.getWorkspacePublicData(req.raw.workspaceId);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/create')
+  async createWorkspace(
+    @Body() createWorkspaceDto: CreateWorkspaceDto,
+    @AuthUser() user: User,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    const workspace = await this.workspaceService.createWorkspaceForUser(
+      user,
+      createWorkspaceDto,
+    );
+
+    // Get the new user record in the new workspace to generate token
+    const paginationOptions = new PaginationOptions();
+    paginationOptions.page = 1;
+    paginationOptions.limit = 1;
+    const newUser = await this.workspaceService.getWorkspaceUsers(
+      workspace.id,
+      paginationOptions,
+    );
+
+    if (newUser.items.length > 0) {
+      const authToken = await this.tokenService.generateAccessToken(
+        newUser.items[0],
+      );
+
+      res.setCookie('authToken', authToken, {
+        httpOnly: true,
+        path: '/',
+        expires: this.environmentService.getCookieExpiresIn(),
+        secure: this.environmentService.isHttps(),
+      });
+    }
+
+    return workspace;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/joined')
+  async getJoinedWorkspaces(@AuthUser() user: User) {
+    return this.workspaceService.getJoinedWorkspaces(user.email);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/switch')
+  async switchWorkspace(
+    @Body() switchWorkspaceDto: SwitchWorkspaceDto,
+    @AuthUser() user: User,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    // Find the user in the target workspace
+    const targetUser = await this.workspaceService.getUserInWorkspace(
+      user.email,
+      switchWorkspaceDto.workspaceId,
+    );
+
+    if (!targetUser || targetUser.deletedAt) {
+      throw new ForbiddenException('You do not have access to this workspace');
+    }
+
+    // Generate new auth token for the target workspace
+    const authToken = await this.tokenService.generateAccessToken(targetUser);
+
+    res.setCookie('authToken', authToken, {
+      httpOnly: true,
+      path: '/',
+      expires: this.environmentService.getCookieExpiresIn(),
+      secure: this.environmentService.isHttps(),
+    });
+
+    return { success: true, workspaceId: switchWorkspaceDto.workspaceId };
   }
 
   @HttpCode(HttpStatus.OK)

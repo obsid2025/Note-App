@@ -46,9 +46,9 @@ import {
   Embed,
   Heading,
   Highlight,
-  TemplateButton,
-  Columns,
-  Column,
+  // TemplateButton,  // TODO: Re-enable after editor-ext is rebuilt
+  // Columns,
+  // Column,
 } from "@docmost/editor-ext";
 import MathInlineView from "@/features/editor/components/math/math-inline.tsx";
 import MathBlockView from "@/features/editor/components/math/math-block.tsx";
@@ -60,7 +60,7 @@ import CodeBlockView from "@/features/editor/components/code-block/code-block-vi
 import DrawioView from "@/features/editor/components/drawio/drawio-view";
 import ExcalidrawView from "@/features/editor/components/excalidraw/excalidraw-view.tsx";
 import EmbedView from "@/features/editor/components/embed/embed-view.tsx";
-import TemplateButtonView from "@/features/editor/components/template-button/template-button-view";
+// import TemplateButtonView from "@/features/editor/components/template-button/template-button-view";  // TODO: Re-enable
 import { common, createLowlight } from "lowlight";
 import plaintext from "highlight.js/lib/languages/plaintext";
 import EmojiCommand from "@/features/editor/extensions/emoji-command";
@@ -373,33 +373,34 @@ const DatabaseRowCommandGroups: SlashMenuGroupedItemsType = {
         editor.chain().focus().deleteRange(range).setEmbed({ provider: "framer" }).run();
       },
     },
-    {
-      title: "Template Button",
-      description: "Insert a button that generates content from a template",
-      searchTerms: ["template", "button", "daily", "tasks", "repeat", "generate"],
-      icon: IconTemplate,
-      command: ({ editor, range }: CommandProps) => {
-        editor.chain().focus().deleteRange(range).insertTemplateButton().run();
-      },
-    },
-    {
-      title: "2 Columns",
-      description: "Create a 2-column layout",
-      searchTerms: ["columns", "layout", "side", "horizontal", "two"],
-      icon: IconColumns,
-      command: ({ editor, range }: CommandProps) => {
-        editor.chain().focus().deleteRange(range).insertColumns(2).run();
-      },
-    },
-    {
-      title: "3 Columns",
-      description: "Create a 3-column layout",
-      searchTerms: ["columns", "layout", "side", "horizontal", "three"],
-      icon: IconColumns,
-      command: ({ editor, range }: CommandProps) => {
-        editor.chain().focus().deleteRange(range).insertColumns(3).run();
-      },
-    },
+    // TODO: Re-enable after editor-ext is rebuilt
+    // {
+    //   title: "Template Button",
+    //   description: "Insert a button that generates content from a template",
+    //   searchTerms: ["template", "button", "daily", "tasks", "repeat", "generate"],
+    //   icon: IconTemplate,
+    //   command: ({ editor, range }: CommandProps) => {
+    //     editor.chain().focus().deleteRange(range).insertTemplateButton().run();
+    //   },
+    // },
+    // {
+    //   title: "2 Columns",
+    //   description: "Create a 2-column layout",
+    //   searchTerms: ["columns", "layout", "side", "horizontal", "two"],
+    //   icon: IconColumns,
+    //   command: ({ editor, range }: CommandProps) => {
+    //     editor.chain().focus().deleteRange(range).insertColumns(2).run();
+    //   },
+    // },
+    // {
+    //   title: "3 Columns",
+    //   description: "Create a 3-column layout",
+    //   searchTerms: ["columns", "layout", "side", "horizontal", "three"],
+    //   icon: IconColumns,
+    //   command: ({ editor, range }: CommandProps) => {
+    //     editor.chain().focus().deleteRange(range).insertColumns(3).run();
+    //   },
+    // },
   ],
 };
 
@@ -578,9 +579,9 @@ const DatabaseRowEditor = forwardRef<DatabaseRowEditorRef, DatabaseRowEditorProp
       Drawio.configure({ view: DrawioView }),
       Excalidraw.configure({ view: ExcalidrawView }),
       Embed.configure({ view: EmbedView }),
-      TemplateButton.configure({ view: TemplateButtonView }),
-      Columns,
-      Column,
+      // TemplateButton.configure({ view: TemplateButtonView }),  // TODO: Re-enable
+      // Columns,
+      // Column,
     ], [t, placeholder]);
 
     const editor = useEditor({
