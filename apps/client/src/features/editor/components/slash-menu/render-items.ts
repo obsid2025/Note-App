@@ -29,6 +29,7 @@ const renderItems = () => {
         interactive: true,
         trigger: "manual",
         placement: "bottom-start",
+        zIndex: 10000, // Ensure popup appears above Mantine modals/drawers (z-index ~200-300)
       });
     },
     onUpdate: (props: {

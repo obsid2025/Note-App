@@ -141,8 +141,15 @@ export default function RowPeekDrawer() {
   }, [row]);
 
   const handleClose = useCallback(() => {
+    // Save content before closing
+    if (rowId && editorRef.current) {
+      const currentContent = editorRef.current.getJSON();
+      if (currentContent && Object.keys(currentContent).length > 0) {
+        updateContentMutation.mutate({ rowId, content: JSON.stringify(currentContent) });
+      }
+    }
     setRowPeekState({ isOpen: false, rowId: null, databaseId: null });
-  }, [setRowPeekState]);
+  }, [setRowPeekState, rowId, updateContentMutation]);
 
   const handleTitleBlur = useCallback(() => {
     if (rowId && title !== row?.title) {
@@ -166,10 +173,13 @@ export default function RowPeekDrawer() {
   }, []);
 
   const handleContentBlur = useCallback(() => {
-    if (rowId && content) {
-      updateContentMutation.mutate({ rowId, content: JSON.stringify(content) });
+    if (rowId && editorRef.current) {
+      const currentContent = editorRef.current.getJSON();
+      if (currentContent && Object.keys(currentContent).length > 0) {
+        updateContentMutation.mutate({ rowId, content: JSON.stringify(currentContent) });
+      }
     }
-  }, [rowId, content, updateContentMutation]);
+  }, [rowId, updateContentMutation]);
 
   const handleOpenFullPage = useCallback(() => {
     // For now, just close the peek - full page view would navigate to a dedicated row page
@@ -240,6 +250,7 @@ export default function RowPeekDrawer() {
             onBlur={handleContentBlur}
             editable={true}
             autofocus={false}
+            placeholder={t('Type "/" to add blocks (text, images, tables, etc.)...')}
           />
         </Stack>
       )}
