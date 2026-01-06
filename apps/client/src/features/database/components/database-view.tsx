@@ -19,7 +19,7 @@ import {
   IconDots,
   IconFilter,
 } from "@tabler/icons-react";
-import { useDatabaseQuery, useDatabaseRowsQuery, useCreateDatabaseRowMutation, useUpdateDatabaseMutation, useDeleteDatabaseMutation, useAddPropertyMutation, useUpdateDatabaseRowMutation, useDeleteDatabaseRowMutation } from "../queries/database-query";
+import { useDatabaseQuery, useDatabaseRowsQuery, useCreateDatabaseRowMutation, useUpdateDatabaseMutation, useDeleteDatabaseMutation, useAddPropertyMutation, useDeletePropertyMutation, useUpdateDatabaseRowMutation, useDeleteDatabaseRowMutation } from "../queries/database-query";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAtom } from "jotai";
@@ -234,6 +234,7 @@ export default function DatabaseView(props: NodeViewProps) {
   const updateDatabaseMutation = useUpdateDatabaseMutation();
   const deleteDatabaseMutation = useDeleteDatabaseMutation();
   const addPropertyMutation = useAddPropertyMutation();
+  const deletePropertyMutation = useDeletePropertyMutation();
   const updateRowMutation = useUpdateDatabaseRowMutation();
   const deleteRowMutation = useDeleteDatabaseRowMutation();
 
@@ -316,6 +317,14 @@ export default function DatabaseView(props: NodeViewProps) {
       type,
     });
   }, [databaseId, addPropertyMutation]);
+
+  const handleDeleteProperty = useCallback(async (propertyId: string) => {
+    if (!databaseId) return;
+    await deletePropertyMutation.mutateAsync({
+      databaseId,
+      propertyId,
+    });
+  }, [databaseId, deletePropertyMutation]);
 
   const handleCellUpdate = useCallback(async (rowId: string, propertyId: string, value: any) => {
     const properties = JSON.stringify({ [propertyId]: value });
@@ -448,8 +457,23 @@ export default function DatabaseView(props: NodeViewProps) {
                   const Icon = propertyTypeIcons[prop.type] || IconTextSize;
                   return (
                     <th key={prop.id} className={classes.tableHeaderCell} style={{ width: prop.width || 150 }}>
-                      <Icon size={14} className={classes.propertyIcon} />
-                      {prop.name}
+                      <Menu shadow="md" width={150} position="bottom-start">
+                        <Menu.Target>
+                          <div style={{ display: "flex", alignItems: "center", cursor: "pointer", width: "100%" }}>
+                            <Icon size={14} className={classes.propertyIcon} />
+                            {prop.name}
+                          </div>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <Menu.Item
+                            color="red"
+                            leftSection={<IconTrash size={14} />}
+                            onClick={() => handleDeleteProperty(prop.id)}
+                          >
+                            {t("Delete property")}
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
                     </th>
                   );
                 })}

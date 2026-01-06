@@ -20,12 +20,19 @@ export class DatabaseService {
     workspaceId: string,
     dto: CreateDatabaseDto,
   ): Promise<Database> {
-    // Create default title property
+    // Create default properties:
+    // - Title property (type TITLE) - hidden since rows have dedicated title field
+    // - Created date property (mandatory, like Notion)
     const defaultProperties: PropertyDefinition[] = [
       {
         id: uuidv4(),
         name: 'Title',
-        type: PropertyType.TEXT,
+        type: PropertyType.TITLE, // Use TITLE type so it's filtered out from display
+      },
+      {
+        id: uuidv4(),
+        name: 'Created',
+        type: PropertyType.DATE,
       },
     ];
 

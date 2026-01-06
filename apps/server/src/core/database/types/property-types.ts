@@ -1,4 +1,5 @@
 export enum PropertyType {
+  TITLE = 'title', // Special type for the title column - not shown in properties since rows have dedicated title field
   TEXT = 'text',
   NUMBER = 'number',
   SELECT = 'select',

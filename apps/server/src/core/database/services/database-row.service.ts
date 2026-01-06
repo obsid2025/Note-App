@@ -39,12 +39,23 @@ export class DatabaseRowService {
     const lastPosition = await this.databaseRowRepo.getLastRowPosition(dto.databaseId);
     const position = generateJitteredKeyBetween(lastPosition, null);
 
+    // Parse existing properties from DTO
+    let properties = dto.properties ? JSON.parse(dto.properties) : {};
+
+    // Auto-set date properties (like "Created") to current date
+    const dbProperties = this.parseProperties(database.properties);
+    for (const prop of dbProperties) {
+      if (prop.type === 'date' && prop.name.toLowerCase() === 'created' && !properties[prop.id]) {
+        properties[prop.id] = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      }
+    }
+
     const row = await this.databaseRowRepo.insertRow({
       slugId: generateSlugId(),
       position,
       title: dto.title,
       icon: dto.icon,
-      properties: dto.properties ? JSON.parse(dto.properties) : {},
+      properties,
       databaseId: dto.databaseId,
       spaceId: database.spaceId,
       workspaceId,
@@ -52,6 +63,14 @@ export class DatabaseRowService {
     });
 
     return row;
+  }
+
+  private parseProperties(properties: any): any[] {
+    if (!properties) return [];
+    if (typeof properties === 'string') {
+      return JSON.parse(properties);
+    }
+    return properties;
   }
 
   async findById(rowId: string, includeContent = false): Promise<DatabaseRow> {
