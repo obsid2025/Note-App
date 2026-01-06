@@ -96,6 +96,17 @@
   }
 }
 
+.dragOver {
+  background: var(--mantine-color-blue-1) !important;
+  outline: 2px dashed var(--mantine-color-blue-5);
+  outline-offset: -2px;
+
+  @mixin dark {
+    background: var(--mantine-color-blue-9) !important;
+    outline-color: var(--mantine-color-blue-6);
+  }
+}
+
 .tableCell {
   padding: 6px 12px;
   border-bottom: 1px solid var(--mantine-color-gray-2);

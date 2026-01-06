@@ -224,6 +224,7 @@ export default function DatabaseView(props: NodeViewProps) {
   const [titleEdit, setTitleEdit] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilterType>(DateFilterType.ALL);
   const [selectedDateProperty, setSelectedDateProperty] = useState<string | null>(null);
+  const [dragOverRowId, setDragOverRowId] = useState<string | null>(null);
 
   const { data: database, isLoading: isLoadingDatabase } = useDatabaseQuery(databaseId);
   const { data: rowsData, isLoading: isLoadingRows } = useDatabaseRowsQuery(
@@ -336,7 +337,42 @@ export default function DatabaseView(props: NodeViewProps) {
   }, [updateRowMutation]);
 
   const handleRowClick = useCallback((row: IDatabaseRow) => {
-    setRowPeekState({ isOpen: true, rowId: row.id, databaseId: row.databaseId });
+    setRowPeekState({ isOpen: true, rowId: row.id, databaseId: row.databaseId, droppedContent: null });
+  }, [setRowPeekState]);
+
+  // Drag and drop handlers for external content
+  const handleDragOver = useCallback((e: React.DragEvent, rowId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverRowId(rowId);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverRowId(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, row: IDatabaseRow) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverRowId(null);
+
+    // Get HTML content from drag data
+    const html = e.dataTransfer.getData("text/html");
+    const text = e.dataTransfer.getData("text/plain");
+
+    // Use HTML if available, otherwise use plain text
+    const content = html || text;
+
+    if (content) {
+      // Open the row drawer with the dropped content
+      setRowPeekState({
+        isOpen: true,
+        rowId: row.id,
+        databaseId: row.databaseId,
+        droppedContent: content,
+      });
+    }
   }, [setRowPeekState]);
 
   const handleDeleteRow = useCallback(async (rowId: string) => {
@@ -509,7 +545,14 @@ export default function DatabaseView(props: NodeViewProps) {
             </thead>
             <tbody>
               {filteredRows.map((row) => (
-                <tr key={row.id} className={classes.tableRow}>
+                <tr
+                  key={row.id}
+                  className={`${classes.tableRow} ${dragOverRowId === row.id ? classes.dragOver : ""}`}
+                  onDragOver={(e) => handleDragOver(e, row.id)}
+                  onDragEnter={(e) => handleDragOver(e, row.id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, row)}
+                >
                   <td
                     className={`${classes.tableCell} ${classes.titleCell}`}
                     onClick={() => handleRowClick(row)}

@@ -119,7 +119,7 @@ export default function RowPeekDrawer() {
   const navigate = useNavigate();
   const { spaceSlug } = useParams();
   const [rowPeekState, setRowPeekState] = useAtom(rowPeekAtom);
-  const { isOpen, rowId, databaseId } = rowPeekState;
+  const { isOpen, rowId, databaseId, droppedContent } = rowPeekState;
 
   const { data: database } = useDatabaseQuery(databaseId);
   const { data: row } = useDatabaseRowQuery(rowId);
@@ -131,6 +131,7 @@ export default function RowPeekDrawer() {
   const [title, setTitle] = useState("");
   const [properties, setProperties] = useState<Record<string, any>>({});
   const [content, setContent] = useState<any>(null);
+  const [pendingDroppedContent, setPendingDroppedContent] = useState<string | null>(null);
 
   useEffect(() => {
     if (row) {
@@ -140,6 +141,29 @@ export default function RowPeekDrawer() {
     }
   }, [row]);
 
+  // Handle dropped content - store it to be inserted when editor is ready
+  useEffect(() => {
+    if (droppedContent && isOpen) {
+      setPendingDroppedContent(droppedContent);
+      // Clear the dropped content from state
+      setRowPeekState((prev) => ({ ...prev, droppedContent: null }));
+    }
+  }, [droppedContent, isOpen, setRowPeekState]);
+
+  // Insert pending dropped content into editor
+  useEffect(() => {
+    if (pendingDroppedContent && editorRef.current && row) {
+      // Small delay to ensure editor is fully mounted
+      const timer = setTimeout(() => {
+        if (editorRef.current) {
+          editorRef.current.insertContent(pendingDroppedContent);
+          setPendingDroppedContent(null);
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingDroppedContent, row]);
+
   const handleClose = useCallback(() => {
     // Save content before closing
     if (rowId && editorRef.current) {
@@ -148,7 +172,8 @@ export default function RowPeekDrawer() {
         updateContentMutation.mutate({ rowId, content: JSON.stringify(currentContent) });
       }
     }
-    setRowPeekState({ isOpen: false, rowId: null, databaseId: null });
+    setPendingDroppedContent(null);
+    setRowPeekState({ isOpen: false, rowId: null, databaseId: null, droppedContent: null });
   }, [setRowPeekState, rowId, updateContentMutation]);
 
   const handleTitleBlur = useCallback(() => {

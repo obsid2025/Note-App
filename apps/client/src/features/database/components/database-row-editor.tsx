@@ -478,6 +478,8 @@ export interface DatabaseRowEditorRef {
   clearContent: () => void;
   getJSON: () => any;
   setContent: (content: any) => void;
+  insertContent: (content: string) => void;
+  focus: () => void;
 }
 
 const DatabaseRowEditor = forwardRef<DatabaseRowEditorRef, DatabaseRowEditorProps>(
@@ -643,6 +645,12 @@ const DatabaseRowEditor = forwardRef<DatabaseRowEditorRef, DatabaseRowEditorProp
       },
       setContent: (content: any) => {
         editor?.commands.setContent(content);
+      },
+      insertContent: (content: string) => {
+        editor?.chain().focus("end").insertContent(content).run();
+      },
+      focus: () => {
+        editor?.commands.focus("end");
       },
     }));
 
