@@ -1,4 +1,5 @@
 export enum PropertyType {
+  TITLE = 'title',
   TEXT = 'text',
   NUMBER = 'number',
   SELECT = 'select',
@@ -11,6 +12,13 @@ export enum PropertyType {
   FILES = 'files',
   FORMULA = 'formula',
   RELATION = 'relation',
+}
+
+export enum DateFilterType {
+  ALL = 'all',
+  LAST_7_DAYS = 'last_7_days',
+  CURRENT_MONTH = 'current_month',
+  CUSTOM = 'custom',
 }
 
 export interface PropertyOption {

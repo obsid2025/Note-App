@@ -218,3 +218,17 @@
 .rowIcon {
   margin-right: 4px;
 }
+
+.filterToolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+  background: var(--mantine-color-gray-0);
+
+  @mixin dark {
+    border-color: var(--mantine-color-dark-4);
+    background: var(--mantine-color-dark-6);
+  }
+}

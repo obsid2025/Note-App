@@ -1,5 +1,6 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { Text, Loader, Center, ActionIcon, Menu, Tooltip } from "@mantine/core";
+import { Text, Loader, Center, ActionIcon, Menu, Tooltip, Group, Select, Popover, Button } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates";
 import {
   IconPlus,
   IconTrash,
@@ -17,17 +18,19 @@ import {
   IconFunction,
   IconArrowsLeftRight,
   IconDots,
+  IconFilter,
 } from "@tabler/icons-react";
 import { useDatabaseQuery, useDatabaseRowsQuery, useCreateDatabaseRowMutation, useUpdateDatabaseMutation, useDeleteDatabaseMutation, useAddPropertyMutation, useUpdateDatabaseRowMutation, useDeleteDatabaseRowMutation } from "../queries/database-query";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAtom } from "jotai";
 import { rowPeekAtom } from "../atoms/database-atoms";
-import { PropertyType, IDatabase, IDatabaseRow, PropertyDefinition } from "../types/database.types";
+import { PropertyType, IDatabase, IDatabaseRow, PropertyDefinition, DateFilterType } from "../types/database.types";
 import classes from "./database-view.module.css";
 import RowPeekDrawer from "./row-peek-drawer";
 
 const propertyTypeIcons: Record<PropertyType, typeof IconTextSize> = {
+  [PropertyType.TITLE]: IconFileDescription,
   [PropertyType.TEXT]: IconTextSize,
   [PropertyType.NUMBER]: IconHash,
   [PropertyType.SELECT]: IconList,
@@ -43,6 +46,7 @@ const propertyTypeIcons: Record<PropertyType, typeof IconTextSize> = {
 };
 
 const propertyTypeLabels: Record<PropertyType, string> = {
+  [PropertyType.TITLE]: "Title",
   [PropertyType.TEXT]: "Text",
   [PropertyType.NUMBER]: "Number",
   [PropertyType.SELECT]: "Select",
@@ -55,6 +59,13 @@ const propertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.FILES]: "Files",
   [PropertyType.FORMULA]: "Formula",
   [PropertyType.RELATION]: "Relation",
+};
+
+const dateFilterLabels: Record<DateFilterType, string> = {
+  [DateFilterType.ALL]: "All dates",
+  [DateFilterType.LAST_7_DAYS]: "Last 7 days",
+  [DateFilterType.CURRENT_MONTH]: "Current month",
+  [DateFilterType.CUSTOM]: "Custom range",
 };
 
 interface TableCellProps {
@@ -213,6 +224,9 @@ export default function DatabaseView(props: NodeViewProps) {
 
   const [rowPeekState, setRowPeekState] = useAtom(rowPeekAtom);
   const [titleEdit, setTitleEdit] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilterType>(DateFilterType.ALL);
+  const [selectedDateProperty, setSelectedDateProperty] = useState<string | null>(null);
+  const [customDateRange, setCustomDateRange] = useState<[Date | null, Date | null]>([null, null]);
 
   const { data: database, isLoading: isLoadingDatabase } = useDatabaseQuery(databaseId);
   const { data: rowsData, isLoading: isLoadingRows } = useDatabaseRowsQuery(
@@ -235,6 +249,56 @@ export default function DatabaseView(props: NodeViewProps) {
     if (!database?.properties) return [];
     return database.properties;
   }, [database]);
+
+  const dateProperties = useMemo(() => {
+    return properties.filter((p) => p.type === PropertyType.DATE);
+  }, [properties]);
+
+  // Auto-select first date property if none selected
+  useEffect(() => {
+    if (dateProperties.length > 0 && !selectedDateProperty) {
+      setSelectedDateProperty(dateProperties[0].id);
+    }
+  }, [dateProperties, selectedDateProperty]);
+
+  const filteredRows = useMemo(() => {
+    if (dateFilter === DateFilterType.ALL || !selectedDateProperty) {
+      return rows;
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    return rows.filter((row) => {
+      const dateValue = row.properties?.[selectedDateProperty];
+      if (!dateValue) return false;
+
+      const rowDate = new Date(dateValue);
+      if (isNaN(rowDate.getTime())) return false;
+
+      switch (dateFilter) {
+        case DateFilterType.LAST_7_DAYS: {
+          const sevenDaysAgo = new Date(today);
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+          return rowDate >= sevenDaysAgo && rowDate <= now;
+        }
+        case DateFilterType.CURRENT_MONTH: {
+          const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+          return rowDate >= firstDayOfMonth && rowDate <= lastDayOfMonth;
+        }
+        case DateFilterType.CUSTOM: {
+          const [startDate, endDate] = customDateRange;
+          if (!startDate || !endDate) return true;
+          const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+          const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59);
+          return rowDate >= start && rowDate <= end;
+        }
+        default:
+          return true;
+      }
+    });
+  }, [rows, dateFilter, selectedDateProperty, customDateRange]);
 
   useEffect(() => {
     if (database?.title) {
@@ -345,6 +409,63 @@ export default function DatabaseView(props: NodeViewProps) {
           </Menu>
         </div>
 
+        {dateProperties.length > 0 && (
+          <div className={classes.filterToolbar}>
+            <Group gap="xs">
+              <IconFilter size={14} style={{ color: "var(--mantine-color-gray-6)" }} />
+              <Select
+                size="xs"
+                value={dateFilter}
+                onChange={(value) => setDateFilter(value as DateFilterType)}
+                data={Object.entries(dateFilterLabels).map(([value, label]) => ({
+                  value,
+                  label: t(label),
+                }))}
+                styles={{ input: { width: 130 } }}
+              />
+              {dateProperties.length > 1 && (
+                <Select
+                  size="xs"
+                  value={selectedDateProperty}
+                  onChange={(value) => setSelectedDateProperty(value)}
+                  data={dateProperties.map((p) => ({
+                    value: p.id,
+                    label: p.name,
+                  }))}
+                  placeholder={t("Select date field")}
+                  styles={{ input: { width: 120 } }}
+                />
+              )}
+              {dateFilter === DateFilterType.CUSTOM && (
+                <Popover width={300} position="bottom" withArrow shadow="md">
+                  <Popover.Target>
+                    <Button size="xs" variant="light">
+                      {customDateRange[0] && customDateRange[1]
+                        ? `${customDateRange[0].toLocaleDateString()} - ${customDateRange[1].toLocaleDateString()}`
+                        : t("Select dates")}
+                    </Button>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <DatePickerInput
+                      type="range"
+                      label={t("Date range")}
+                      placeholder={t("Pick dates range")}
+                      value={customDateRange}
+                      onChange={setCustomDateRange}
+                      clearable
+                    />
+                  </Popover.Dropdown>
+                </Popover>
+              )}
+              {dateFilter !== DateFilterType.ALL && (
+                <Text size="xs" c="dimmed">
+                  {filteredRows.length} / {rows.length} {t("rows")}
+                </Text>
+              )}
+            </Group>
+          </div>
+        )}
+
         <div className={classes.tableWrapper}>
           <table className={classes.table}>
             <thead className={classes.tableHeader}>
@@ -373,7 +494,9 @@ export default function DatabaseView(props: NodeViewProps) {
                     </Menu.Target>
                     <Menu.Dropdown>
                       <Menu.Label>{t("Property type")}</Menu.Label>
-                      {Object.values(PropertyType).map((type) => {
+                      {Object.values(PropertyType)
+                        .filter((type) => type !== PropertyType.TITLE)
+                        .map((type) => {
                         const Icon = propertyTypeIcons[type];
                         return (
                           <Menu.Item
@@ -391,7 +514,7 @@ export default function DatabaseView(props: NodeViewProps) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {filteredRows.map((row) => (
                 <tr key={row.id} className={classes.tableRow}>
                   <td
                     className={`${classes.tableCell} ${classes.titleCell}`}

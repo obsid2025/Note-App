@@ -1,12 +1,13 @@
-import { Drawer, TextInput, ActionIcon, Text, Stack, Group, Divider, Textarea, Badge } from "@mantine/core";
+import { Drawer, TextInput, ActionIcon, Text, Stack, Group, Divider, Badge } from "@mantine/core";
 import { IconX, IconMaximize, IconFileDescription } from "@tabler/icons-react";
 import { useAtom } from "jotai";
 import { rowPeekAtom } from "../atoms/database-atoms";
 import { useDatabaseQuery, useDatabaseRowQuery, useUpdateDatabaseRowMutation, useUpdateDatabaseRowContentMutation } from "../queries/database-query";
 import { useTranslation } from "react-i18next";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { PropertyType, PropertyDefinition } from "../types/database.types";
 import { useNavigate, useParams } from "react-router-dom";
+import DatabaseRowEditor, { DatabaseRowEditorRef } from "./database-row-editor";
 
 interface PropertyEditorProps {
   property: PropertyDefinition;
@@ -126,15 +127,16 @@ export default function RowPeekDrawer() {
   const updateRowMutation = useUpdateDatabaseRowMutation();
   const updateContentMutation = useUpdateDatabaseRowContentMutation();
 
+  const editorRef = useRef<DatabaseRowEditorRef>(null);
   const [title, setTitle] = useState("");
   const [properties, setProperties] = useState<Record<string, any>>({});
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState<any>(null);
 
   useEffect(() => {
     if (row) {
       setTitle(row.title || "");
       setProperties(row.properties || {});
-      setContent(row.content ? JSON.stringify(row.content, null, 2) : "");
+      setContent(row.content || null);
     }
   }, [row]);
 
@@ -159,14 +161,13 @@ export default function RowPeekDrawer() {
     }
   }, [rowId, properties, updateRowMutation]);
 
+  const handleContentUpdate = useCallback((newContent: any) => {
+    setContent(newContent);
+  }, []);
+
   const handleContentBlur = useCallback(() => {
     if (rowId && content) {
-      try {
-        const parsedContent = JSON.parse(content);
-        updateContentMutation.mutate({ rowId, content: JSON.stringify(parsedContent) });
-      } catch {
-        // Invalid JSON, skip update
-      }
+      updateContentMutation.mutate({ rowId, content: JSON.stringify(content) });
     }
   }, [rowId, content, updateContentMutation]);
 
@@ -215,7 +216,9 @@ export default function RowPeekDrawer() {
 
           <Divider label={t("Properties")} labelPosition="left" />
 
-          {database?.properties.map((prop) => (
+          {database?.properties
+            .filter((prop) => prop.type !== PropertyType.TITLE)
+            .map((prop) => (
             <div key={prop.id}>
               <Text size="sm" fw={500} mb={4} c="dimmed">
                 {prop.name}
@@ -230,14 +233,13 @@ export default function RowPeekDrawer() {
 
           <Divider label={t("Content")} labelPosition="left" />
 
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+          <DatabaseRowEditor
+            ref={editorRef}
+            defaultContent={content}
+            onUpdate={handleContentUpdate}
             onBlur={handleContentBlur}
-            placeholder={t("Add content (JSON format)...")}
-            minRows={6}
-            autosize
-            description={t("Rich text editor coming soon. For now, use JSON format.")}
+            editable={true}
+            autofocus={false}
           />
         </Stack>
       )}

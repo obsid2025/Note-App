@@ -1,0 +1,128 @@
+.editorWrapper {
+    width: 100%;
+    min-height: 150px;
+}
+
+.editor {
+    border: 1px solid var(--mantine-color-gray-4);
+    border-radius: var(--mantine-radius-sm);
+    background: var(--mantine-color-body);
+    min-height: 150px;
+    padding: 8px 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-color: var(--mantine-color-gray-5);
+    }
+
+    :global(.ProseMirror) {
+        outline: none;
+        min-height: 130px;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    :global(.ProseMirror) p {
+        margin-block-start: 0;
+        margin-block-end: 0.5em;
+    }
+
+    :global(.ProseMirror) p:last-child {
+        margin-block-end: 0;
+    }
+
+    :global(.ProseMirror) h1,
+    :global(.ProseMirror) h2,
+    :global(.ProseMirror) h3 {
+        margin-top: 1em;
+        margin-bottom: 0.5em;
+    }
+
+    :global(.ProseMirror) h1:first-child,
+    :global(.ProseMirror) h2:first-child,
+    :global(.ProseMirror) h3:first-child {
+        margin-top: 0;
+    }
+
+    :global(.ProseMirror) ul,
+    :global(.ProseMirror) ol {
+        padding-left: 1.5em;
+        margin: 0.5em 0;
+    }
+
+    :global(.ProseMirror) li {
+        margin: 0.25em 0;
+    }
+
+    :global(.ProseMirror) ul[data-type="taskList"] {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    :global(.ProseMirror) ul[data-type="taskList"] li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    :global(.ProseMirror) ul[data-type="taskList"] li > label {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    :global(.ProseMirror) ul[data-type="taskList"] li > div {
+        flex: 1;
+    }
+
+    :global(.ProseMirror) a {
+        color: var(--mantine-color-blue-6);
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    :global(.ProseMirror) blockquote {
+        border-left: 3px solid var(--mantine-color-gray-4);
+        padding-left: 1em;
+        margin: 0.5em 0;
+        color: var(--mantine-color-gray-7);
+    }
+
+    :global(.ProseMirror) code {
+        background: var(--mantine-color-gray-1);
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+
+    :global(.ProseMirror) pre {
+        background: var(--mantine-color-gray-1);
+        padding: 12px;
+        border-radius: var(--mantine-radius-sm);
+        overflow-x: auto;
+    }
+
+    :global(.ProseMirror) pre code {
+        background: none;
+        padding: 0;
+    }
+
+    :global(.ProseMirror) hr {
+        border: none;
+        border-top: 1px solid var(--mantine-color-gray-3);
+        margin: 1em 0;
+    }
+
+    :global(.ProseMirror) .is-empty::before {
+        content: attr(data-placeholder);
+        color: var(--mantine-color-gray-5);
+        pointer-events: none;
+        float: left;
+        height: 0;
+    }
+}
+
+.focused {
+    border-color: var(--mantine-color-blue-5);
+    box-shadow: 0 0 0 2px var(--mantine-color-blue-2);
+}
