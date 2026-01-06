@@ -211,13 +211,13 @@ export function useJoinedWorkspacesQuery(): UseQueryResult<
 
 export function useCreateWorkspaceMutation() {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   return useMutation<IWorkspace, Error, ICreateWorkspace>({
     mutationFn: (data) => createNewWorkspace(data),
     onSuccess: () => {
       notifications.show({ message: t("Workspace created successfully") });
-      queryClient.invalidateQueries({ queryKey: ["joinedWorkspaces"] });
+      // Reload to use the new auth cookie for the new workspace
+      window.location.href = "/home";
     },
     onError: (error) => {
       const errorMessage = error["response"]?.data?.message;
