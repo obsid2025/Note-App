@@ -1,9 +1,11 @@
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, BubbleMenu } from "@tiptap/react";
 import { useFocusWithin } from "@mantine/hooks";
 import clsx from "clsx";
-import { forwardRef, useEffect, useImperativeHandle, useMemo } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import classes from "./database-row-editor.module.css";
+import { ActionIcon, Tooltip, Paper, Group } from "@mantine/core";
+import { IconTrash, IconCopy, IconCut } from "@tabler/icons-react";
 
 // Import extensions
 import { StarterKit } from "@tiptap/starter-kit";
@@ -654,8 +656,62 @@ const DatabaseRowEditor = forwardRef<DatabaseRowEditorRef, DatabaseRowEditorProp
       },
     }));
 
+    const handleDelete = useCallback(() => {
+      if (!editor) return;
+      const { from, to, empty } = editor.state.selection;
+      if (!empty) {
+        editor.chain().focus().deleteSelection().run();
+      } else {
+        // Delete the current node/block
+        editor.chain().focus().selectParentNode().deleteSelection().run();
+      }
+    }, [editor]);
+
+    const handleCopy = useCallback(() => {
+      if (!editor) return;
+      document.execCommand("copy");
+    }, [editor]);
+
+    const handleCut = useCallback(() => {
+      if (!editor) return;
+      document.execCommand("cut");
+    }, [editor]);
+
     return (
       <div ref={focusRef} className={classes.editorWrapper}>
+        {editor && (
+          <BubbleMenu
+            editor={editor}
+            tippyOptions={{
+              duration: 100,
+              zIndex: 10000,
+            }}
+            shouldShow={({ editor, state }) => {
+              const { selection } = state;
+              const { empty } = selection;
+              // Show when there's a selection
+              return !empty && editor.isEditable;
+            }}
+          >
+            <Paper shadow="sm" p={4} withBorder style={{ display: "flex", gap: 4 }}>
+              <Tooltip label={t("Copy")}>
+                <ActionIcon variant="subtle" size="sm" onClick={handleCopy}>
+                  <IconCopy size={16} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={t("Cut")}>
+                <ActionIcon variant="subtle" size="sm" onClick={handleCut}>
+                  <IconCut size={16} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={t("Delete")}>
+                <ActionIcon variant="subtle" size="sm" color="red" onClick={handleDelete}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Paper>
+          </BubbleMenu>
+        )}
         <EditorContent
           editor={editor}
           className={clsx(classes.editor, { [classes.focused]: focused })}
