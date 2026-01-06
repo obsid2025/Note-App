@@ -18,7 +18,6 @@ export enum DateFilterType {
   ALL = 'all',
   LAST_7_DAYS = 'last_7_days',
   CURRENT_MONTH = 'current_month',
-  CUSTOM = 'custom',
 }
 
 export interface PropertyOption {

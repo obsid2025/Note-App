@@ -1,6 +1,5 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { Text, Loader, Center, ActionIcon, Menu, Tooltip, Group, Select, Popover, Button } from "@mantine/core";
-import { DatePickerInput } from "@mantine/dates";
+import { Text, Loader, Center, ActionIcon, Menu, Tooltip, Group, Select } from "@mantine/core";
 import {
   IconPlus,
   IconTrash,
@@ -65,7 +64,6 @@ const dateFilterLabels: Record<DateFilterType, string> = {
   [DateFilterType.ALL]: "All dates",
   [DateFilterType.LAST_7_DAYS]: "Last 7 days",
   [DateFilterType.CURRENT_MONTH]: "Current month",
-  [DateFilterType.CUSTOM]: "Custom range",
 };
 
 interface TableCellProps {
@@ -226,7 +224,6 @@ export default function DatabaseView(props: NodeViewProps) {
   const [titleEdit, setTitleEdit] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilterType>(DateFilterType.ALL);
   const [selectedDateProperty, setSelectedDateProperty] = useState<string | null>(null);
-  const [customDateRange, setCustomDateRange] = useState<[Date | null, Date | null]>([null, null]);
 
   const { data: database, isLoading: isLoadingDatabase } = useDatabaseQuery(databaseId);
   const { data: rowsData, isLoading: isLoadingRows } = useDatabaseRowsQuery(
@@ -287,18 +284,11 @@ export default function DatabaseView(props: NodeViewProps) {
           const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
           return rowDate >= firstDayOfMonth && rowDate <= lastDayOfMonth;
         }
-        case DateFilterType.CUSTOM: {
-          const [startDate, endDate] = customDateRange;
-          if (!startDate || !endDate) return true;
-          const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-          const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59);
-          return rowDate >= start && rowDate <= end;
-        }
         default:
           return true;
       }
     });
-  }, [rows, dateFilter, selectedDateProperty, customDateRange]);
+  }, [rows, dateFilter, selectedDateProperty]);
 
   useEffect(() => {
     if (database?.title) {
@@ -435,27 +425,6 @@ export default function DatabaseView(props: NodeViewProps) {
                   placeholder={t("Select date field")}
                   styles={{ input: { width: 120 } }}
                 />
-              )}
-              {dateFilter === DateFilterType.CUSTOM && (
-                <Popover width={300} position="bottom" withArrow shadow="md">
-                  <Popover.Target>
-                    <Button size="xs" variant="light">
-                      {customDateRange[0] && customDateRange[1]
-                        ? `${customDateRange[0].toLocaleDateString()} - ${customDateRange[1].toLocaleDateString()}`
-                        : t("Select dates")}
-                    </Button>
-                  </Popover.Target>
-                  <Popover.Dropdown>
-                    <DatePickerInput
-                      type="range"
-                      label={t("Date range")}
-                      placeholder={t("Pick dates range")}
-                      value={customDateRange}
-                      onChange={(value) => setCustomDateRange(value as [Date | null, Date | null])}
-                      clearable
-                    />
-                  </Popover.Dropdown>
-                </Popover>
               )}
               {dateFilter !== DateFilterType.ALL && (
                 <Text size="xs" c="dimmed">
