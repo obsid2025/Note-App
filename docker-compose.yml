@@ -13,8 +13,6 @@ services:
       APP_SECRET: ${APP_SECRET:-d0cm0st_s3cr3t_k3y_ch4ng3_1n_pr0d}
       DATABASE_URL: postgresql://${POSTGRES_USER:-docmost}:${POSTGRES_PASSWORD:-docmost123}@docmost-db:5432/${POSTGRES_DB:-docmost}?schema=public
       REDIS_URL: redis://docmost-redis:6379
-    ports:
-      - "3001:3000"
     restart: unless-stopped
     volumes:
       - docmost:/app/data/storage
