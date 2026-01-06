@@ -7,7 +7,9 @@ import {
 export const AuthWorkspace = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    const workspace = request.raw?.workspace ?? request?.user?.workspace;
+    // Prefer JWT-provided workspace (from authenticated user) over middleware workspace
+    // This allows multi-workspace support in self-hosted mode
+    const workspace = request?.user?.workspace ?? request.raw?.workspace;
 
     if (!workspace) {
       throw new BadRequestException('Invalid workspace');
