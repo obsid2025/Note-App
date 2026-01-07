@@ -50,6 +50,7 @@ import {
   TemplateButton,
   Columns,
   Column,
+  ColumnDrop,
 } from "@docmost/editor-ext";
 import {
   randomElement,
@@ -243,6 +244,9 @@ export const mainExtensions = [
   }),
   Columns,
   Column,
+  ColumnDrop.configure({
+    edgeWidth: 50,
+  }),
   MarkdownClipboard.configure({
     transformPastedText: true,
   }),
