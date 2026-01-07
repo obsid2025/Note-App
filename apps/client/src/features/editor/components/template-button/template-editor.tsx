@@ -33,7 +33,6 @@ import {
   TableRow,
   TableCell,
   TableHeader,
-  Callout,
   Heading,
   Highlight,
 } from "@docmost/editor-ext";
@@ -45,7 +44,6 @@ import {
   IconH1,
   IconH2,
   IconH3,
-  IconInfoCircle,
   IconList,
   IconListNumbers,
   IconTable,
@@ -133,14 +131,6 @@ const menuItems: SlashMenuItem[] = [
     icon: IconBlockquote,
     command: ({ editor, range }) =>
       editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
-  },
-  {
-    title: "Callout",
-    description: "Highlighted callout box",
-    searchTerms: ["callout", "info", "warning", "note"],
-    icon: IconInfoCircle,
-    command: ({ editor, range }) =>
-      editor.chain().focus().deleteRange(range).setCallout().run(),
   },
   {
     title: "Toggle",
@@ -353,7 +343,6 @@ export const TemplateEditor = forwardRef<TemplateEditorRef, TemplateEditorProps>
         TableRow,
         TableCell,
         TableHeader,
-        Callout,
         TemplateSlashCommand,
       ],
       content: initialContent || "",
