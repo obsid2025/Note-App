@@ -97,3 +97,28 @@
 [data-mantine-color-scheme="dark"] .editor table th {
   background: var(--mantine-color-dark-6);
 }
+
+/* Editor container */
+.editorContainer {
+  position: relative;
+}
+
+/* Slash Menu Styles */
+.slashMenu {
+  background: var(--mantine-color-body);
+}
+
+.menuItem {
+  display: block;
+  padding: 8px;
+  border-radius: var(--mantine-radius-sm);
+  transition: background-color 0.1s ease;
+}
+
+.menuItem:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+.menuItemSelected {
+  background: var(--mantine-color-default-hover);
+}
