@@ -5,7 +5,7 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import classes from "./template-editor.module.css";
 
-// Same imports as database-row-editor
+// Same imports as database-row-editor - ALL required extensions
 import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { TextAlign } from "@tiptap/extension-text-align";
@@ -23,18 +23,28 @@ import {
   Details,
   DetailsContent,
   DetailsSummary,
+  MathBlock,
+  MathInline,
   TableCell,
   TableRow,
   TableHeader,
   CustomTable,
   TrailingNode,
+  TiptapImage,
   Callout,
+  TiptapVideo,
   LinkExtension,
+  Attachment,
   CustomCodeBlock,
   Heading,
   Highlight,
 } from "@docmost/editor-ext";
+import MathInlineView from "@/features/editor/components/math/math-inline.tsx";
+import MathBlockView from "@/features/editor/components/math/math-block.tsx";
+import ImageView from "@/features/editor/components/image/image-view.tsx";
 import CalloutView from "@/features/editor/components/callout/callout-view.tsx";
+import VideoView from "@/features/editor/components/video/video-view.tsx";
+import AttachmentView from "@/features/editor/components/attachment/attachment-view.tsx";
 import CodeBlockView from "@/features/editor/components/code-block/code-block-view.tsx";
 import { common, createLowlight } from "lowlight";
 import plaintext from "highlight.js/lib/languages/plaintext";
@@ -251,7 +261,7 @@ export const TemplateEditor = forwardRef<TemplateEditorRef, TemplateEditorProps>
     const { t } = useTranslation();
     const { ref: focusRef, focused } = useFocusWithin();
 
-    // Create slash command extension inside component to avoid stale references
+    // Create slash command extension inside component
     const TemplateSlashCommand = useMemo(() => Extension.create({
       name: "template-slash-command",
 
@@ -331,6 +341,15 @@ export const TemplateEditor = forwardRef<TemplateEditorRef, TemplateEditorProps>
       TableRow,
       TableCell,
       TableHeader,
+      // These are required by Callout/Details content schema
+      MathInline.configure({ view: MathInlineView }),
+      MathBlock.configure({ view: MathBlockView }),
+      TiptapImage.configure({
+        view: ImageView,
+        allowBase64: false,
+      }),
+      TiptapVideo.configure({ view: VideoView }),
+      Attachment.configure({ view: AttachmentView }),
       Details,
       DetailsSummary,
       DetailsContent,
