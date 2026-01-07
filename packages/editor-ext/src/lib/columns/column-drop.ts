@@ -67,7 +67,7 @@ export const ColumnDrop = Extension.create<ColumnDropOptions>({
             dragover: (view, event) => {
               if (!view.dragging) return false;
 
-              const coords = { x: event.clientX, y: event.clientY };
+              const coords = { left: event.clientX, top: event.clientY };
               const pos = view.posAtCoords(coords);
               if (!pos) return false;
 
