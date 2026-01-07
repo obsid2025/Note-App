@@ -5,6 +5,9 @@ FROM base AS builder
 
 WORKDIR /app
 
+# Increase Node.js memory limit for build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 COPY . .
 
 RUN npm install -g pnpm@10.4.0
@@ -18,6 +21,9 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Increase Node.js memory limit for production install
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 # Copy apps
 COPY --from=builder /app/apps/server/dist /app/apps/server/dist
