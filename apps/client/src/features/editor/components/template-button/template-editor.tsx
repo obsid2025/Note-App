@@ -1,9 +1,6 @@
-import React, { useEffect, forwardRef, useImperativeHandle, useState } from "react";
-import { useEditor, EditorContent, ReactRenderer } from "@tiptap/react";
-import { Extension } from "@tiptap/core";
-import Suggestion from "@tiptap/suggestion";
-import { PluginKey } from "@tiptap/pm/state";
-import tippy from "tippy.js";
+import React, { useEffect, forwardRef, useImperativeHandle } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import { Button, Group, Menu } from "@mantine/core";
 
 // Core extensions
 import { StarterKit } from "@tiptap/starter-kit";
@@ -40,317 +37,11 @@ import {
   IconInfoCircle,
   IconList,
   IconListNumbers,
+  IconPlus,
   IconTable,
-  IconTypography,
 } from "@tabler/icons-react";
 
 import classes from "./template-editor.module.css";
-
-// Types for slash menu
-interface CommandProps {
-  editor: any;
-  range: any;
-}
-
-interface SlashMenuItem {
-  title: string;
-  description: string;
-  searchTerms?: string[];
-  icon: React.ComponentType<{ size?: string | number }>;
-  command: (props: CommandProps) => void;
-}
-
-interface SlashMenuGroupedItems {
-  [key: string]: SlashMenuItem[];
-}
-
-// Simplified menu items for template editor
-const templateMenuItems: SlashMenuGroupedItems = {
-  Basic: [
-    {
-      title: "Text",
-      description: "Just start typing with plain text",
-      searchTerms: ["text", "paragraph", "plain"],
-      icon: IconTypography,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).setParagraph().run(),
-    },
-    {
-      title: "Heading 1",
-      description: "Large section heading",
-      searchTerms: ["h1", "heading", "title", "large"],
-      icon: IconH1,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).setHeading({ level: 1 }).run(),
-    },
-    {
-      title: "Heading 2",
-      description: "Medium section heading",
-      searchTerms: ["h2", "heading", "subtitle", "medium"],
-      icon: IconH2,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).setHeading({ level: 2 }).run(),
-    },
-    {
-      title: "Heading 3",
-      description: "Small section heading",
-      searchTerms: ["h3", "heading", "small"],
-      icon: IconH3,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).setHeading({ level: 3 }).run(),
-    },
-    {
-      title: "Bullet List",
-      description: "Create a simple bullet list",
-      searchTerms: ["bullet", "list", "unordered", "ul"],
-      icon: IconList,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).toggleBulletList().run(),
-    },
-    {
-      title: "Numbered List",
-      description: "Create a numbered list",
-      searchTerms: ["number", "list", "ordered", "ol"],
-      icon: IconListNumbers,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
-    },
-    {
-      title: "Task List",
-      description: "Create a to-do list with checkboxes",
-      searchTerms: ["task", "todo", "checkbox", "checklist"],
-      icon: IconCheckbox,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).toggleTaskList().run(),
-    },
-    {
-      title: "Quote",
-      description: "Create a block quote",
-      searchTerms: ["quote", "blockquote", "cite"],
-      icon: IconBlockquote,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
-    },
-  ],
-  Advanced: [
-    {
-      title: "Callout",
-      description: "Create a highlighted callout box",
-      searchTerms: ["callout", "info", "warning", "note", "alert", "highlight"],
-      icon: IconInfoCircle,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).setCallout().run(),
-    },
-    {
-      title: "Toggle",
-      description: "Create a collapsible toggle section",
-      searchTerms: ["toggle", "collapsible", "accordion", "dropdown", "expand"],
-      icon: IconCaretRightFilled,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).setDetails().run(),
-    },
-    {
-      title: "Table",
-      description: "Insert a table",
-      searchTerms: ["table", "rows", "columns"],
-      icon: IconTable,
-      command: ({ editor, range }: CommandProps) =>
-        editor
-          .chain()
-          .focus()
-          .deleteRange(range)
-          .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-          .run(),
-    },
-  ],
-};
-
-const getTemplateSuggestionItems = ({ query }: { query: string }): SlashMenuItem[] => {
-  const search = query.toLowerCase();
-  const allItems: SlashMenuItem[] = [];
-
-  const fuzzyMatch = (searchQuery: string, target: string) => {
-    let queryIndex = 0;
-    target = target.toLowerCase();
-    for (const char of target) {
-      if (searchQuery[queryIndex] === char) queryIndex++;
-      if (queryIndex === searchQuery.length) return true;
-    }
-    return false;
-  };
-
-  for (const items of Object.values(templateMenuItems)) {
-    for (const item of items) {
-      const matchesTitle = fuzzyMatch(search, item.title);
-      const matchesSearch = item.searchTerms?.some((term) =>
-        fuzzyMatch(search, term)
-      );
-      if (matchesTitle || matchesSearch || search === "") {
-        allItems.push(item);
-      }
-    }
-  }
-
-  return allItems.length > 0 ? allItems : Object.values(templateMenuItems).flat();
-};
-
-// Simple command list component for template editor
-const TemplateCommandList = forwardRef(({
-  items,
-  command,
-}: {
-  items: SlashMenuItem[];
-  command: (item: SlashMenuItem) => void;
-}, ref) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [items]);
-
-  const selectItem = (index: number) => {
-    const item = items[index];
-    if (item) {
-      command(item);
-    }
-  };
-
-  useImperativeHandle(ref, () => ({
-    onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-      if (event.key === "ArrowUp") {
-        setSelectedIndex((prev) => (prev + items.length - 1) % items.length);
-        return true;
-      }
-
-      if (event.key === "ArrowDown") {
-        setSelectedIndex((prev) => (prev + 1) % items.length);
-        return true;
-      }
-
-      if (event.key === "Enter") {
-        selectItem(selectedIndex);
-        return true;
-      }
-
-      return false;
-    },
-  }), [selectedIndex, items]);
-
-  if (!items.length) {
-    return null;
-  }
-
-  return (
-    <div className={classes.slashMenu}>
-      {items.map((item, index) => {
-        const Icon = item.icon;
-        return (
-          <button
-            key={item.title}
-            className={`${classes.slashMenuItem} ${index === selectedIndex ? classes.slashMenuItemSelected : ""}`}
-            onClick={() => selectItem(index)}
-          >
-            <Icon size={18} />
-            <div className={classes.slashMenuItemContent}>
-              <span className={classes.slashMenuItemTitle}>{item.title}</span>
-              <span className={classes.slashMenuItemDescription}>{item.description}</span>
-            </div>
-          </button>
-        );
-      })}
-    </div>
-  );
-});
-
-TemplateCommandList.displayName = "TemplateCommandList";
-
-// Simple render function for slash menu
-const templateRenderItems = () => {
-  let component: ReactRenderer | null = null;
-  let popup: any | null = null;
-
-  return {
-    onStart: (props: any) => {
-      component = new ReactRenderer(TemplateCommandList, {
-        props,
-        editor: props.editor,
-      });
-
-      if (!props.clientRect) {
-        return;
-      }
-
-      popup = tippy("body", {
-        getReferenceClientRect: props.clientRect,
-        appendTo: () => document.body,
-        content: component.element,
-        showOnCreate: true,
-        interactive: true,
-        trigger: "manual",
-        placement: "bottom-start",
-        zIndex: 10000,
-      });
-    },
-    onUpdate: (props: any) => {
-      component?.updateProps(props);
-
-      if (!props.clientRect) {
-        return;
-      }
-
-      popup &&
-        popup[0].setProps({
-          getReferenceClientRect: props.clientRect,
-        });
-    },
-    onKeyDown: (props: { event: KeyboardEvent }) => {
-      if (props.event.key === "Escape") {
-        popup?.[0].hide();
-        return true;
-      }
-
-      // @ts-ignore
-      return component?.ref?.onKeyDown(props);
-    },
-    onExit: () => {
-      if (popup && !popup[0].state.isDestroyed) {
-        popup[0].destroy();
-      }
-
-      if (component) {
-        component.destroy();
-      }
-    },
-  };
-};
-
-// Create slash command extension for template editor
-const TemplateSlashCommand = Extension.create({
-  name: "templateSlashCommand",
-
-  addOptions() {
-    return {
-      suggestion: {
-        char: "/",
-        command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
-          props.command({ editor, range });
-        },
-      },
-    };
-  },
-
-  addProseMirrorPlugins() {
-    return [
-      Suggestion({
-        editor: this.editor,
-        ...this.options.suggestion,
-        pluginKey: new PluginKey("templateSlashCommand"),
-        items: getTemplateSuggestionItems,
-        render: templateRenderItems,
-      }),
-    ];
-  },
-});
 
 export interface TemplateEditorRef {
   getJSON: () => any;
@@ -363,7 +54,7 @@ interface TemplateEditorProps {
 }
 
 export const TemplateEditor = forwardRef<TemplateEditorRef, TemplateEditorProps>(
-  ({ initialContent, placeholder = "Type / for commands..." }, ref) => {
+  ({ initialContent, placeholder = "Start typing your template..." }, ref) => {
     const editor = useEditor({
       extensions: [
         StarterKit.configure({
@@ -399,7 +90,6 @@ export const TemplateEditor = forwardRef<TemplateEditorRef, TemplateEditorProps>
         TableCell,
         TableHeader,
         Callout,
-        TemplateSlashCommand,
       ],
       content: initialContent || "",
       editorProps: {
@@ -420,9 +110,92 @@ export const TemplateEditor = forwardRef<TemplateEditorRef, TemplateEditorProps>
       }
     }, [editor, initialContent]);
 
+    if (!editor) {
+      return null;
+    }
+
     return (
-      <div className={classes.editorWrapper}>
-        <EditorContent editor={editor} />
+      <div>
+        <Group mb="xs" gap="xs">
+          <Menu shadow="md" width={200}>
+            <Menu.Target>
+              <Button variant="light" size="xs" leftSection={<IconPlus size={14} />}>
+                Insert Block
+              </Button>
+            </Menu.Target>
+
+            <Menu.Dropdown>
+              <Menu.Label>Basic</Menu.Label>
+              <Menu.Item
+                leftSection={<IconH1 size={16} />}
+                onClick={() => editor.chain().focus().setHeading({ level: 1 }).run()}
+              >
+                Heading 1
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconH2 size={16} />}
+                onClick={() => editor.chain().focus().setHeading({ level: 2 }).run()}
+              >
+                Heading 2
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconH3 size={16} />}
+                onClick={() => editor.chain().focus().setHeading({ level: 3 }).run()}
+              >
+                Heading 3
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconList size={16} />}
+                onClick={() => editor.chain().focus().toggleBulletList().run()}
+              >
+                Bullet List
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconListNumbers size={16} />}
+                onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              >
+                Numbered List
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconCheckbox size={16} />}
+                onClick={() => editor.chain().focus().toggleTaskList().run()}
+              >
+                Task List
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconBlockquote size={16} />}
+                onClick={() => editor.chain().focus().toggleBlockquote().run()}
+              >
+                Quote
+              </Menu.Item>
+
+              <Menu.Divider />
+              <Menu.Label>Advanced</Menu.Label>
+              <Menu.Item
+                leftSection={<IconInfoCircle size={16} />}
+                onClick={() => editor.chain().focus().setCallout().run()}
+              >
+                Callout
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconCaretRightFilled size={16} />}
+                onClick={() => editor.chain().focus().setDetails().run()}
+              >
+                Toggle
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconTable size={16} />}
+                onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+              >
+                Table
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+
+        <div className={classes.editorWrapper}>
+          <EditorContent editor={editor} />
+        </div>
       </div>
     );
   }
