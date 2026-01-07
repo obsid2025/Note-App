@@ -1,16 +1,34 @@
 import { NodeViewWrapper, NodeViewProps } from "@tiptap/react";
-import { Button, TextInput, Modal, Stack, Group, ActionIcon, Text, Textarea } from "@mantine/core";
+import { Button, TextInput, Drawer, Stack, Group, ActionIcon, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconSettings, IconTemplate } from "@tabler/icons-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import classes from "./template-button.module.css";
+import TemplateEditor, { TemplateEditorRef } from "./template-editor";
 
 export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
   const { t } = useTranslation();
   const [opened, { open, close }] = useDisclosure(false);
   const [label, setLabel] = useState(node.attrs.label || "New template");
-  const [templateJson, setTemplateJson] = useState(node.attrs.template || "[]");
+  const [initialContent, setInitialContent] = useState<any>(null);
+  const editorRef = useRef<TemplateEditorRef>(null);
+
+  // Load initial content when drawer opens
+  useEffect(() => {
+    if (opened) {
+      try {
+        const content = JSON.parse(node.attrs.template);
+        if (Array.isArray(content)) {
+          setInitialContent({ type: "doc", content });
+        } else {
+          setInitialContent(content);
+        }
+      } catch (error) {
+        setInitialContent(null);
+      }
+    }
+  }, [opened, node.attrs.template]);
 
   const handleExecute = useCallback(() => {
     if (!editor.isEditable) return;
@@ -36,17 +54,27 @@ export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
     const pos = getPos();
     if (typeof pos !== "number") return;
 
-    editor
-      .chain()
-      .focus()
-      .updateAttributes("templateButton", {
-        label,
-        template: templateJson,
-      })
-      .run();
+    const templateJSON = editorRef.current?.getJSON();
+
+    if (templateJSON && templateJSON.content) {
+      editor
+        .chain()
+        .focus()
+        .updateAttributes("templateButton", {
+          label,
+          template: JSON.stringify(templateJSON.content),
+        })
+        .run();
+    } else {
+      editor
+        .chain()
+        .focus()
+        .updateAttributes("templateButton", { label })
+        .run();
+    }
 
     close();
-  }, [editor, label, templateJson, close, getPos]);
+  }, [editor, label, close, getPos]);
 
   return (
     <NodeViewWrapper className={classes.wrapper}>
@@ -74,11 +102,13 @@ export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
         )}
       </div>
 
-      <Modal
+      <Drawer
         opened={opened}
         onClose={close}
         title={t("Configure Template Button")}
+        position="right"
         size="lg"
+        padding="md"
       >
         <Stack>
           <TextInput
@@ -88,24 +118,30 @@ export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
             onChange={(e) => setLabel(e.target.value)}
           />
 
-          <Textarea
-            label={t("Template Content (JSON)")}
-            description={t("Edit the template JSON content")}
-            placeholder='[{"type": "taskList", "content": [...]}]'
-            value={templateJson}
-            onChange={(e) => setTemplateJson(e.target.value)}
-            minRows={8}
-            autosize
-          />
+          <div>
+            <Text size="sm" fw={500} mb={4}>
+              {t("Template Content")}
+            </Text>
+            <Text size="xs" c="dimmed" mb={8}>
+              {t("Create the content that will be inserted when the button is clicked")}
+            </Text>
+            {opened && (
+              <TemplateEditor
+                ref={editorRef}
+                initialContent={initialContent}
+                placeholder={t("Type your template content here...")}
+              />
+            )}
+          </div>
 
-          <Group justify="flex-end">
+          <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={close}>
               {t("Cancel")}
             </Button>
             <Button onClick={handleSaveSettings}>{t("Save")}</Button>
           </Group>
         </Stack>
-      </Modal>
+      </Drawer>
     </NodeViewWrapper>
   );
 }

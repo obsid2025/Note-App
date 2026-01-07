@@ -4,6 +4,17 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { TaskList } from "@tiptap/extension-task-list";
 import { TaskItem } from "@tiptap/extension-task-item";
+import { Underline } from "@tiptap/extension-underline";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Typography } from "@tiptap/extension-typography";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import { ListKeymap } from "@tiptap/extension-list-keymap";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { Highlight } from "@tiptap/extension-highlight";
 
 import classes from "./template-editor.module.css";
 
@@ -21,13 +32,34 @@ export const TemplateEditor = forwardRef<TemplateEditorRef, TemplateEditorProps>
   ({ initialContent, placeholder = "Type your template content..." }, ref) => {
     const editor = useEditor({
       extensions: [
-        StarterKit,
+        StarterKit.configure({
+          heading: {
+            levels: [1, 2, 3],
+          },
+          dropcursor: {
+            width: 3,
+            color: "#70CFF8",
+          },
+        }),
         Placeholder.configure({
           placeholder,
           showOnlyWhenEditable: true,
         }),
+        TextAlign.configure({ types: ["heading", "paragraph"] }),
         TaskList,
         TaskItem.configure({ nested: true }),
+        ListKeymap,
+        Underline,
+        Typography,
+        TextStyle,
+        Color,
+        Highlight.configure({ multicolor: true }),
+        Table.configure({
+          resizable: true,
+        }),
+        TableRow,
+        TableCell,
+        TableHeader,
       ],
       content: initialContent || "",
       editorProps: {
