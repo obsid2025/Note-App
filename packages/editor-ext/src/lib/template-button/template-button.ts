@@ -53,28 +53,7 @@ export const TemplateButton = Node.create<TemplateButtonOptions>({
         }),
       },
       template: {
-        default: JSON.stringify([
-          {
-            type: "taskList",
-            content: [
-              {
-                type: "taskItem",
-                attrs: { checked: false },
-                content: [{ type: "paragraph", content: [{ type: "text", text: "Task 1" }] }],
-              },
-              {
-                type: "taskItem",
-                attrs: { checked: false },
-                content: [{ type: "paragraph", content: [{ type: "text", text: "Task 2" }] }],
-              },
-              {
-                type: "taskItem",
-                attrs: { checked: false },
-                content: [{ type: "paragraph", content: [{ type: "text", text: "Task 3" }] }],
-              },
-            ],
-          },
-        ]),
+        default: JSON.stringify([]),
         parseHTML: (element) => element.getAttribute("data-template"),
         renderHTML: (attributes) => ({
           "data-template": attributes.template,

@@ -1,4 +1,4 @@
-import { Drawer, TextInput, ActionIcon, Text, Stack, Group, Divider, Badge } from "@mantine/core";
+import { Modal, TextInput, ActionIcon, Text, Stack, Group, Divider, Badge } from "@mantine/core";
 import { IconX, IconMaximize, IconFileDescription } from "@tabler/icons-react";
 import { useAtom } from "jotai";
 import { rowPeekAtom } from "../atoms/database-atoms";
@@ -213,13 +213,11 @@ export default function RowPeekDrawer() {
   }, [handleClose]);
 
   return (
-    <Drawer
+    <Modal
       opened={isOpen}
       onClose={handleClose}
-      position="right"
       size="lg"
-      withCloseButton={false}
-      padding="md"
+      centered
       title={
         <Group justify="space-between" w="100%">
           <Group gap="xs">
@@ -229,9 +227,6 @@ export default function RowPeekDrawer() {
           <Group gap="xs">
             <ActionIcon variant="subtle" color="gray" onClick={handleOpenFullPage} title={t("Open as full page")}>
               <IconMaximize size={18} />
-            </ActionIcon>
-            <ActionIcon variant="subtle" color="gray" onClick={handleClose}>
-              <IconX size={18} />
             </ActionIcon>
           </Group>
         </Group>
@@ -279,6 +274,6 @@ export default function RowPeekDrawer() {
           />
         </Stack>
       )}
-    </Drawer>
+    </Modal>
   );
 }

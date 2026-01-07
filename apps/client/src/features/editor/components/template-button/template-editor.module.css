@@ -1,3 +1,14 @@
+.editorContainer {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.editorContainer.focused {
+  border-color: var(--mantine-color-blue-5);
+}
+
 .editorWrapper {
   min-height: 200px;
   max-height: 400px;
@@ -96,26 +107,57 @@
   background: var(--mantine-color-dark-6);
 }
 
-/* Editor container */
-.editorContainer {
-  position: relative;
-  border: 1px solid var(--mantine-color-default-border);
+.editor pre {
+  background: var(--mantine-color-gray-1);
   border-radius: var(--mantine-radius-sm);
-  overflow: hidden;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
 }
 
-/* Toolbar */
-.toolbar {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  background: var(--mantine-color-gray-0);
-  border-bottom: 1px solid var(--mantine-color-default-border);
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-[data-mantine-color-scheme="dark"] .toolbar {
+[data-mantine-color-scheme="dark"] .editor pre {
   background: var(--mantine-color-dark-6);
 }
 
+.editor code {
+  background: var(--mantine-color-gray-1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+[data-mantine-color-scheme="dark"] .editor code {
+  background: var(--mantine-color-dark-5);
+}
+
+.editor pre code {
+  background: none;
+  padding: 0;
+}
+
+.editor hr {
+  border: none;
+  border-top: 2px solid var(--mantine-color-default-border);
+  margin: 1rem 0;
+}
+
+/* Callout styles */
+.editor [data-callout] {
+  border-radius: var(--mantine-radius-sm);
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+
+/* Details/Toggle styles */
+.editor details {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.editor details summary {
+  cursor: pointer;
+  font-weight: 500;
+}

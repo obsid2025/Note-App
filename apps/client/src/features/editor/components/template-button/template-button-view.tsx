@@ -1,5 +1,5 @@
 import { NodeViewWrapper, NodeViewProps } from "@tiptap/react";
-import { Button, TextInput, Drawer, Stack, Group, ActionIcon, Text } from "@mantine/core";
+import { Button, TextInput, Modal, Stack, Group, ActionIcon, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconSettings, IconTemplate } from "@tabler/icons-react";
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -102,13 +102,12 @@ export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
         )}
       </div>
 
-      <Drawer
+      <Modal
         opened={opened}
         onClose={close}
         title={t("Configure Template Button")}
-        position="right"
         size="lg"
-        padding="md"
+        centered
       >
         <Stack>
           <TextInput
@@ -141,7 +140,7 @@ export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
             <Button onClick={handleSaveSettings}>{t("Save")}</Button>
           </Group>
         </Stack>
-      </Drawer>
+      </Modal>
     </NodeViewWrapper>
   );
 }
