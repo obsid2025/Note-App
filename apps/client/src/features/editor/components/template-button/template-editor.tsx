@@ -1,8 +1,9 @@
-import { useEditor, EditorContent } from "@tiptap/react";
-import { useEffect, forwardRef, useImperativeHandle } from "react";
+import React, { useEffect, forwardRef, useImperativeHandle, useState } from "react";
+import { useEditor, EditorContent, ReactRenderer } from "@tiptap/react";
 import { Extension } from "@tiptap/core";
 import Suggestion from "@tiptap/suggestion";
 import { PluginKey } from "@tiptap/pm/state";
+import tippy from "tippy.js";
 
 // Core extensions
 import { StarterKit } from "@tiptap/starter-kit";
@@ -27,15 +28,7 @@ import {
   Callout,
   Heading,
   Highlight,
-  MathBlock,
-  MathInline,
 } from "@docmost/editor-ext";
-
-import MathInlineView from "@/features/editor/components/math/math-inline.tsx";
-import MathBlockView from "@/features/editor/components/math/math-block.tsx";
-import CalloutView from "@/features/editor/components/callout/callout-view.tsx";
-import renderItems from "@/features/editor/components/slash-menu/render-items";
-import { SlashMenuGroupedItemsType, CommandProps } from "@/features/editor/components/slash-menu/types";
 
 import {
   IconBlockquote,
@@ -47,16 +40,32 @@ import {
   IconInfoCircle,
   IconList,
   IconListNumbers,
-  IconMath,
-  IconMathFunction,
   IconTable,
   IconTypography,
 } from "@tabler/icons-react";
 
 import classes from "./template-editor.module.css";
 
+// Types for slash menu
+interface CommandProps {
+  editor: any;
+  range: any;
+}
+
+interface SlashMenuItem {
+  title: string;
+  description: string;
+  searchTerms?: string[];
+  icon: React.ComponentType<{ size?: number }>;
+  command: (props: CommandProps) => void;
+}
+
+interface SlashMenuGroupedItems {
+  [key: string]: SlashMenuItem[];
+}
+
 // Simplified menu items for template editor
-const templateMenuItems: SlashMenuGroupedItemsType = {
+const templateMenuItems: SlashMenuGroupedItems = {
   Basic: [
     {
       title: "Text",
@@ -153,54 +162,166 @@ const templateMenuItems: SlashMenuGroupedItemsType = {
           .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
           .run(),
     },
-    {
-      title: "Inline Math",
-      description: "Insert inline math equation",
-      searchTerms: ["math", "inline", "equation", "latex", "katex"],
-      icon: IconMath,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).setMathInline().run(),
-    },
-    {
-      title: "Block Math",
-      description: "Insert block math equation",
-      searchTerms: ["math", "block", "equation", "latex", "katex"],
-      icon: IconMathFunction,
-      command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).setMathBlock().run(),
-    },
   ],
 };
 
-const getTemplateSuggestionItems = ({ query }: { query: string }): SlashMenuGroupedItemsType => {
+const getTemplateSuggestionItems = ({ query }: { query: string }): SlashMenuItem[] => {
   const search = query.toLowerCase();
-  const filteredGroups: SlashMenuGroupedItemsType = {};
+  const allItems: SlashMenuItem[] = [];
 
-  const fuzzyMatch = (query: string, target: string) => {
+  const fuzzyMatch = (searchQuery: string, target: string) => {
     let queryIndex = 0;
     target = target.toLowerCase();
     for (const char of target) {
-      if (query[queryIndex] === char) queryIndex++;
-      if (queryIndex === query.length) return true;
+      if (searchQuery[queryIndex] === char) queryIndex++;
+      if (queryIndex === searchQuery.length) return true;
     }
     return false;
   };
 
-  for (const [groupName, items] of Object.entries(templateMenuItems)) {
-    const filteredItems = items.filter((item) => {
+  for (const items of Object.values(templateMenuItems)) {
+    for (const item of items) {
       const matchesTitle = fuzzyMatch(search, item.title);
       const matchesSearch = item.searchTerms?.some((term) =>
         fuzzyMatch(search, term)
       );
-      return matchesTitle || matchesSearch;
-    });
-
-    if (filteredItems.length > 0) {
-      filteredGroups[groupName] = filteredItems;
+      if (matchesTitle || matchesSearch || search === "") {
+        allItems.push(item);
+      }
     }
   }
 
-  return Object.keys(filteredGroups).length > 0 ? filteredGroups : templateMenuItems;
+  return allItems.length > 0 ? allItems : Object.values(templateMenuItems).flat();
+};
+
+// Simple command list component for template editor
+const TemplateCommandList = forwardRef(({
+  items,
+  command,
+}: {
+  items: SlashMenuItem[];
+  command: (item: SlashMenuItem) => void;
+}, ref) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [items]);
+
+  const selectItem = (index: number) => {
+    const item = items[index];
+    if (item) {
+      command(item);
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+      if (event.key === "ArrowUp") {
+        setSelectedIndex((prev) => (prev + items.length - 1) % items.length);
+        return true;
+      }
+
+      if (event.key === "ArrowDown") {
+        setSelectedIndex((prev) => (prev + 1) % items.length);
+        return true;
+      }
+
+      if (event.key === "Enter") {
+        selectItem(selectedIndex);
+        return true;
+      }
+
+      return false;
+    },
+  }), [selectedIndex, items]);
+
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <div className={classes.slashMenu}>
+      {items.map((item, index) => {
+        const Icon = item.icon;
+        return (
+          <button
+            key={item.title}
+            className={`${classes.slashMenuItem} ${index === selectedIndex ? classes.slashMenuItemSelected : ""}`}
+            onClick={() => selectItem(index)}
+          >
+            <Icon size={18} />
+            <div className={classes.slashMenuItemContent}>
+              <span className={classes.slashMenuItemTitle}>{item.title}</span>
+              <span className={classes.slashMenuItemDescription}>{item.description}</span>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+});
+
+TemplateCommandList.displayName = "TemplateCommandList";
+
+// Simple render function for slash menu
+const templateRenderItems = () => {
+  let component: ReactRenderer | null = null;
+  let popup: any | null = null;
+
+  return {
+    onStart: (props: any) => {
+      component = new ReactRenderer(TemplateCommandList, {
+        props,
+        editor: props.editor,
+      });
+
+      if (!props.clientRect) {
+        return;
+      }
+
+      popup = tippy("body", {
+        getReferenceClientRect: props.clientRect,
+        appendTo: () => document.body,
+        content: component.element,
+        showOnCreate: true,
+        interactive: true,
+        trigger: "manual",
+        placement: "bottom-start",
+        zIndex: 10000,
+      });
+    },
+    onUpdate: (props: any) => {
+      component?.updateProps(props);
+
+      if (!props.clientRect) {
+        return;
+      }
+
+      popup &&
+        popup[0].setProps({
+          getReferenceClientRect: props.clientRect,
+        });
+    },
+    onKeyDown: (props: { event: KeyboardEvent }) => {
+      if (props.event.key === "Escape") {
+        popup?.[0].hide();
+        return true;
+      }
+
+      // @ts-ignore
+      return component?.ref?.onKeyDown(props);
+    },
+    onExit: () => {
+      if (popup && !popup[0].state.isDestroyed) {
+        popup[0].destroy();
+      }
+
+      if (component) {
+        component.destroy();
+      }
+    },
+  };
 };
 
 // Create slash command extension for template editor
@@ -225,7 +346,7 @@ const TemplateSlashCommand = Extension.create({
         ...this.options.suggestion,
         pluginKey: new PluginKey("templateSlashCommand"),
         items: getTemplateSuggestionItems,
-        render: renderItems,
+        render: templateRenderItems,
       }),
     ];
   },
@@ -277,9 +398,7 @@ export const TemplateEditor = forwardRef<TemplateEditorRef, TemplateEditorProps>
         TableRow,
         TableCell,
         TableHeader,
-        Callout.configure({ view: CalloutView }),
-        MathInline.configure({ view: MathInlineView }),
-        MathBlock.configure({ view: MathBlockView }),
+        Callout,
         TemplateSlashCommand,
       ],
       content: initialContent || "",
