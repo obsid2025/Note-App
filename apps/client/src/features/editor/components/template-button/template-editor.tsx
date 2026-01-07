@@ -56,7 +56,7 @@ interface SlashMenuItem {
   title: string;
   description: string;
   searchTerms?: string[];
-  icon: React.ComponentType<{ size?: number }>;
+  icon: React.ComponentType<{ size?: string | number }>;
   command: (props: CommandProps) => void;
 }
 
