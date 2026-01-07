@@ -1,14 +1,35 @@
 import { NodeViewWrapper, NodeViewProps } from "@tiptap/react";
-import { Button, TextInput, Textarea, Modal, Stack, Group, ActionIcon } from "@mantine/core";
+import { Button, TextInput, Modal, Stack, Group, ActionIcon, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconPlus, IconSettings, IconTemplate } from "@tabler/icons-react";
-import { useState, useCallback } from "react";
+import { IconSettings, IconTemplate } from "@tabler/icons-react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import classes from "./template-button.module.css";
+import TemplateEditor, { TemplateEditorRef } from "./template-editor";
 
 export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
+  const { t } = useTranslation();
   const [opened, { open, close }] = useDisclosure(false);
   const [label, setLabel] = useState(node.attrs.label || "New template");
-  const [templateText, setTemplateText] = useState("");
+  const [initialContent, setInitialContent] = useState<any>(null);
+  const editorRef = useRef<TemplateEditorRef>(null);
+
+  // Load initial content when modal opens
+  useEffect(() => {
+    if (opened) {
+      try {
+        const content = JSON.parse(node.attrs.template);
+        // Wrap content in a doc structure if it's an array
+        if (Array.isArray(content)) {
+          setInitialContent({ type: "doc", content });
+        } else {
+          setInitialContent(content);
+        }
+      } catch (error) {
+        setInitialContent(null);
+      }
+    }
+  }, [opened, node.attrs.template]);
 
   const handleExecute = useCallback(() => {
     if (!editor.isEditable) return;
@@ -34,49 +55,29 @@ export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
     const pos = getPos();
     if (typeof pos !== "number") return;
 
-    editor
-      .chain()
-      .focus()
-      .updateAttributes("templateButton", { label })
-      .run();
+    // Get content from the template editor
+    const templateJSON = editorRef.current?.getJSON();
 
-    // If template text is provided, try to parse it as markdown-like format
-    // and convert to JSON content
-    if (templateText.trim()) {
-      try {
-        // Simple conversion: treat each line as a task item
-        const lines = templateText.split("\n").filter((l) => l.trim());
-        const content = [
-          {
-            type: "taskList",
-            content: lines.map((line) => ({
-              type: "taskItem",
-              attrs: { checked: false },
-              content: [
-                {
-                  type: "paragraph",
-                  content: [{ type: "text", text: line.trim() }],
-                },
-              ],
-            })),
-          },
-        ];
-
-        editor
-          .chain()
-          .focus()
-          .updateAttributes("templateButton", {
-            label,
-            template: JSON.stringify(content),
-          })
-          .run();
-      } catch (error) {
-        console.error("Failed to parse template:", error);
-      }
+    if (templateJSON && templateJSON.content) {
+      editor
+        .chain()
+        .focus()
+        .updateAttributes("templateButton", {
+          label,
+          template: JSON.stringify(templateJSON.content),
+        })
+        .run();
+    } else {
+      // Just update the label if no content
+      editor
+        .chain()
+        .focus()
+        .updateAttributes("templateButton", { label })
+        .run();
     }
 
     close();
-  }, [editor, label, templateText, close, getPos]);
+  }, [editor, label, close, getPos]);
 
   return (
     <NodeViewWrapper className={classes.wrapper}>
@@ -104,27 +105,41 @@ export function TemplateButtonView({ node, editor, getPos }: NodeViewProps) {
         )}
       </div>
 
-      <Modal opened={opened} onClose={close} title="Configure Template Button" size="md">
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={t("Configure Template Button")}
+        size="lg"
+      >
         <Stack>
           <TextInput
-            label="Button Label"
-            placeholder="e.g., Add Daily Tasks"
+            label={t("Button Label")}
+            placeholder={t("e.g., Add Daily Tasks")}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
           />
-          <Textarea
-            label="Template Content"
-            description="Enter each task on a new line"
-            placeholder="Task 1&#10;Task 2&#10;Task 3"
-            value={templateText}
-            onChange={(e) => setTemplateText(e.target.value)}
-            minRows={5}
-          />
+
+          <div>
+            <Text size="sm" fw={500} mb={4}>
+              {t("Template Content")}
+            </Text>
+            <Text size="xs" c="dimmed" mb={8}>
+              {t("Use / to insert different block types (callouts, lists, tables, etc.)")}
+            </Text>
+            {opened && (
+              <TemplateEditor
+                ref={editorRef}
+                initialContent={initialContent}
+                placeholder={t("Type / for commands...")}
+              />
+            )}
+          </div>
+
           <Group justify="flex-end">
             <Button variant="default" onClick={close}>
-              Cancel
+              {t("Cancel")}
             </Button>
-            <Button onClick={handleSaveSettings}>Save</Button>
+            <Button onClick={handleSaveSettings}>{t("Save")}</Button>
           </Group>
         </Stack>
       </Modal>
