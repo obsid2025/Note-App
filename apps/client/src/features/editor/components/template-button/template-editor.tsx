@@ -159,7 +159,7 @@ const templateMenuItems: SlashMenuGroupedItemsType = {
       searchTerms: ["math", "inline", "equation", "latex", "katex"],
       icon: IconMath,
       command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).insertMathInline().run(),
+        editor.chain().focus().deleteRange(range).setMathInline().run(),
     },
     {
       title: "Block Math",
@@ -167,7 +167,7 @@ const templateMenuItems: SlashMenuGroupedItemsType = {
       searchTerms: ["math", "block", "equation", "latex", "katex"],
       icon: IconMathFunction,
       command: ({ editor, range }: CommandProps) =>
-        editor.chain().focus().deleteRange(range).insertMathBlock().run(),
+        editor.chain().focus().deleteRange(range).setMathBlock().run(),
     },
   ],
 };
